@@ -303,6 +303,64 @@ def _start_scheduler():
     threading.Thread(target=loop, daemon=True).start()
 
 
+def _start_push_scheduler():
+    """每 5 分钟看一次, 由 push_holdings.py 自己决定推不推(内置持仓推送)。
+
+    为什么内置而不是只靠 launchd:
+      macOS 的隐私保护(TCC)让 launchd 的后台进程**读不了 ~/Documents** ——
+      实测 plist 加载成功但一跑就 exit 126, 日志是
+        getcwd: cannot access parent directories: Operation not permitted
+        /bin/bash: <项目>/push_run.sh: Operation not permitted
+      而 app.py 跑在你的终端里没这个限制。又因为"持仓镜像"本来就要靠网页同步,
+      **推送离了 app.py 没有意义**, 所以把调度放这里零成本、零授权。
+
+    去重: push_holdings.py 自己用 data/push_state.json 记发送时间(间隔 < 25 分钟就跳过),
+    所以即使以后 TCC 问题解决了、launchd 与这里同时触发, 你也只会收到一条。
+    """
+    def loop():
+        while True:
+            try:
+                now = datetime.now()
+                hm = now.hour * 100 + now.minute
+                # 只做"粗筛", 避免一天 288 次空转起进程; 真正的时段判定仍在
+                # push_holdings.py(sector_flow.session_of) 里 —— 时段规则只有一处真源。
+                if now.weekday() < 5 and 920 <= hm <= 1510:
+                    _run_push()
+            except Exception as e:
+                with _push_lock:
+                    _push["msg"] = f"推送线程异常: {e}"
+            time.sleep(300)
+    threading.Thread(target=loop, daemon=True).start()
+
+
+def _run_push():
+    """后台线程: 跑 push_holdings.py。它自带时段门+去重, 跳过时会打印原因。"""
+    with _push_lock:
+        if _push["running"]:
+            return "running"
+        _push["running"] = True
+    try:
+        r = subprocess.run([sys.executable, os.path.join(BASE, "push_holdings.py")],
+                           cwd=BASE, capture_output=True, text=True, timeout=180)
+        out = ((r.stdout or "") + (r.stderr or "")).strip()
+        with _push_lock:
+            _push["running"] = False
+            _push["last_ts"] = datetime.now().isoformat(timespec="seconds")
+            _push["msg"] = out[-800:]
+            _push["ok"] = r.returncode == 0
+        # 打到终端: 你在看 app.py 的窗口里能直接看到"推了/为什么跳过"
+        first = out.splitlines()[-1] if out else "(无输出)"
+        print(f"  [推送 {datetime.now():%H:%M:%S}] {first}")
+        return out
+    except Exception as e:
+        with _push_lock:
+            _push["running"] = False
+            _push["msg"] = f"推送失败: {e}"
+            _push["ok"] = False
+        print(f"  [推送] 失败: {e}")
+        return f"推送失败: {e}"
+
+
 def _load_json(path):
     if not os.path.exists(path):
         return None
@@ -399,6 +457,75 @@ def _consecutive_days(code, date):
     return n
 
 
+# ---------------- 模拟仓镜像 (供定时推送读取) ----------------
+# 模拟仓的唯一真源仍是浏览器 localStorage(cbf_sim_v1) —— 服务端**不参与**买卖账目,
+# 只保存一份只读镜像 data/portfolio.json: 前端每次 simPersist() 都 POST 过来覆盖它,
+# push_holdings.py 定时读它算盈亏并推送。这样"持仓"不依赖哪个浏览器开着页面。
+SIM_MIRROR = os.path.join(DATA_DIR, "portfolio.json")
+SIM_MAX_BYTES = 256 * 1024      # 持仓镜像远小于此; 超过就是异常请求, 直接拒
+SIM_MAX_POSITIONS = 500
+_sim_lock = threading.Lock()    # 并发 POST 时保证 revision 单调、不写坏文件
+
+# 持仓推送(内置调度)的状态; 见 _start_push_scheduler()
+_push = {"running": False, "last_ts": None, "msg": "", "ok": None}
+_push_lock = threading.Lock()
+
+
+def _read_sim_mirror():
+    """读镜像; 没有返回 None, 损坏返回 {'error': ...}。"""
+    try:
+        with open(SIM_MIRROR, encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return None
+    except Exception as e:
+        return {"error": f"镜像文件损坏: {e}"}
+
+
+def _validate_sim(payload):
+    """校验前端传来的模拟仓存档。返回 (ok, msg)。"""
+    if not isinstance(payload, dict):
+        return False, "格式不对: 需要对象"
+    if not isinstance(payload.get("positions"), list):
+        return False, "格式不对: 缺 positions 数组"
+    if not isinstance(payload.get("closed", []), list):
+        return False, "closed 必须是数组"
+    if len(payload["positions"]) > SIM_MAX_POSITIONS:
+        return False, f"持仓数异常(> {SIM_MAX_POSITIONS})"
+    for i, p in enumerate(payload["positions"]):
+        if not isinstance(p, dict):
+            return False, f"positions[{i}] 不是对象"
+        code = p.get("code")
+        if not isinstance(code, str) or not re.match(r"^\d{6}$", code.strip()):
+            return False, f"positions[{i}].code 不是 6 位数字"
+        qty = p.get("qty")
+        if not isinstance(qty, (int, float)) or isinstance(qty, bool) or qty <= 0:
+            return False, f"positions[{i}].qty 必须是正数"
+    return True, "ok"
+
+
+def _write_sim_mirror(payload):
+    """校验后原子落盘。返回 (ok, msg)。"""
+    ok, msg = _validate_sim(payload)
+    if not ok:
+        return False, msg
+    prev = _read_sim_mirror()
+    rev = int((prev or {}).get("revision") or 0) + 1 if isinstance(prev, dict) else 1
+    out = {
+        "saved_at": datetime.now().isoformat(timespec="seconds"),
+        "saved_ts": time.time(),
+        "revision": rev,
+        "source": "web(localStorage)",
+        "portfolio": payload,
+    }
+    tmp = f"{SIM_MIRROR}.{os.getpid()}.tmp"
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False, indent=1)
+    os.replace(tmp, SIM_MIRROR)
+    return True, f"已同步 {len(payload['positions'])} 笔持仓(含 {len(payload.get('closed') or [])} 笔已平仓)"
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *a):
         pass
@@ -468,6 +595,11 @@ class Handler(BaseHTTPRequestHandler):
                 out["scan_done"] = _scan["done"]
                 out["scan_msg"] = _scan["msg"]
             out["running"] = out["running"] or out["scan_running"]
+            with _push_lock:
+                out["push_running"] = _push["running"]
+                out["push_last_ts"] = _push["last_ts"]
+                out["push_ok"] = _push["ok"]
+                out["push_msg"] = _push["msg"]
             self._send(json.dumps(out, ensure_ascii=False))
             return
         # ---- 放量榜 ----
@@ -612,7 +744,52 @@ class Handler(BaseHTTPRequestHandler):
                          key=lambda x: x.get("last_seen", ""), reverse=True)
             self._send(json.dumps(out, ensure_ascii=False))
             return
+        # 模拟仓镜像: 给定时推送脚本(push_holdings.py)和手机查"服务端看到的持仓"用
+        if path == "/api/sim":
+            mir = _read_sim_mirror()
+            if mir is None:
+                self._send(json.dumps(
+                    {"ok": True, "exists": False,
+                     "hint": "服务端还没有持仓镜像; 打开网页的「模拟仓」页签即会自动同步"},
+                    ensure_ascii=False))
+            else:
+                self._send(json.dumps({"ok": True, "exists": True, **mir},
+                                      ensure_ascii=False))
+            return
         self._send("not found", "text/plain", 404)
+
+    def do_POST(self):
+        """只接一个写接口: POST /api/sim (前端模拟仓 -> 服务端只读镜像)。"""
+        path = self.path.split("?")[0]
+        if path != "/api/sim":
+            self._send('{"ok":false,"error":"not found"}', code=404)
+            return
+        try:
+            n = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            n = 0
+        if n <= 0:
+            self._send(json.dumps({"ok": False, "error": "空请求体"},
+                                  ensure_ascii=False), code=400)
+            return
+        if n > SIM_MAX_BYTES:
+            self._send(json.dumps(
+                {"ok": False, "error": f"请求体过大({n} 字节 > {SIM_MAX_BYTES})"},
+                ensure_ascii=False), code=413)
+            return
+        try:
+            payload = json.loads(self.rfile.read(n).decode("utf-8"))
+        except Exception as e:
+            self._send(json.dumps({"ok": False, "error": f"JSON 解析失败: {e}"},
+                                  ensure_ascii=False), code=400)
+            return
+        # 前端可能直接发 SIM, 也可能发 {portfolio: SIM} —— 两种都收
+        if isinstance(payload, dict) and isinstance(payload.get("portfolio"), dict):
+            payload = payload["portfolio"]
+        with _sim_lock:
+            ok, msg = _write_sim_mirror(payload)
+        self._send(json.dumps({"ok": ok, "msg": msg}, ensure_ascii=False),
+                   code=200 if ok else 400)
 
 
 def _lan_ips():
@@ -641,6 +818,7 @@ def _lan_ips():
 def main():
     _rebuild_cache()
     _start_scheduler()
+    _start_push_scheduler()
     # 绑 0.0.0.0 而不是 127.0.0.1: 手机要能用局域网 IP 打开并"添加到主屏幕"
     srv = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"可转债热度看板  本机: http://127.0.0.1:{PORT}")

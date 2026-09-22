@@ -125,11 +125,39 @@ tbody tr:hover{background:#f4f7ff}
 .news a:hover{color:var(--accent)}
 .news .nm{color:var(--sub);font-size:12px;margin-right:8px}
 .hint{color:var(--sub);font-size:12px;margin:8px 0}
+/* ---- 模拟仓: 榜单里的快捷建仓按钮 / 持仓张数步进 / 跨页签的结果提示 ---- */
+.quickbuy{font-family:inherit;font-size:12px;line-height:1.5;padding:2px 8px;white-space:nowrap;
+  color:var(--accent);background:#fff;border:1px solid var(--border);border-radius:7px;cursor:pointer;
+  transition:border-color .15s,color .15s,background .15s}
+.quickbuy:hover{border-color:var(--accent);background:#f4f7ff}
+.quickbuy.held{color:#b45309;border-color:#f0d3a8;background:#fff8ef}   /* 已持仓: 再点是加仓 */
+.qtybox{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.qtybox .step{font-family:inherit;font-size:15px;line-height:1;width:22px;height:22px;padding:0;
+  color:var(--text);background:#fff;border:1px solid var(--border);border-radius:6px;cursor:pointer}
+.qtybox .step:hover{border-color:var(--accent);color:var(--accent)}
+.qtybox .q{min-width:30px;text-align:center;font-weight:700}
+#toast{position:fixed;left:50%;bottom:24px;max-width:min(92vw,560px);z-index:200;
+  padding:9px 16px;border-radius:10px;background:#232833;color:#fff;font-size:13px;line-height:1.5;
+  box-shadow:0 6px 20px rgba(20,24,32,.28);opacity:0;pointer-events:none;
+  transform:translateX(-50%) translateY(8px);transition:opacity .18s,transform .18s}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.bad{background:#8f1d1d}
 .empty{padding:40px;text-align:center;color:var(--sub)}
 #bondSearch{width:320px}
 .hist-kpis{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .kpi{background:#f8f9fb;border-radius:10px;padding:8px 14px}
 .kpi .k{font-size:11px;color:var(--sub)} .kpi .v{font-size:16px;font-weight:700}
+/* ---- K线区间收益(像 TradingView 的测量工具): 卡片里的开关 + 拖选后的结果块 ----
+   结果块放在图「下面」而不是上面: 拖选过程中若它把图往下挤, 画布会在手指底下移位, 选区就飞了 */
+.measbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 8px}
+.measbtn{font-family:inherit;font-size:12.5px;line-height:1.5;padding:5px 12px;cursor:pointer;
+  color:var(--text);background:#fff;border:1px solid var(--border);border-radius:8px;
+  transition:border-color .15s,color .15s,background .15s}
+.measbtn:hover{border-color:var(--accent);color:var(--accent)}
+.measbtn.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.measbox{margin-top:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#f8f9fb}
+.measline{font-size:12.5px;line-height:1.7}
+.measbox .hist-kpis{margin-bottom:0}
 .mmore{display:none}      /* 只在手机上出现: 指标默认收一半, 别把图表挤到屏幕外 */
 footer{color:var(--sub);font-size:12px;margin-top:24px;line-height:1.8}
 @media (max-width:900px){.idxrow,.mgrid,.changegrid{grid-template-columns:1fr}
@@ -147,6 +175,12 @@ tbody tr:hover td:first-child{background:#f4f7ff}
   box-shadow:6px 0 8px -8px rgba(20,24,32,.28)}
 .pin2 th:nth-child(2){background:#f8f9fb;z-index:3}
 .pin2 tbody tr:hover td:nth-child(2){background:#f4f7ff}
+/* 「模拟仓」列钉在右边: 榜表 13 列本来就比窗口宽, 不钉住的话按钮会跑到可视区外面,
+   得横向滑动才找得到(用户反馈过)。钉住后不管怎么横滑, 加仓按钮一直在右边缘。 */
+th.pinr,td.pinr{position:sticky;right:0;background:#fff;z-index:2;
+  box-shadow:-6px 0 8px -8px rgba(20,24,32,.28)}
+th.pinr{background:#f8f9fb;z-index:3}
+tbody tr:hover td.pinr{background:#f4f7ff}
 
 @media (max-width:820px){
   body{font-size:15px;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:rgba(43,90,237,.10);
@@ -205,6 +239,10 @@ tbody tr:hover td:first-child{background:#f4f7ff}
   table{width:max-content;min-width:100%;font-size:12.5px}
   th{padding:7px 8px} td{padding:8px 8px}
   .bcode{display:block;margin:1px 0 0}
+  /* 手指点得到的尺寸: 榜单里的「＋模拟仓」和持仓张数的 −/+ 在桌面上只有 22px, 太小 */
+  .quickbuy{padding:5px 10px;font-size:13px}
+  .qtybox .step{width:28px;height:28px;font-size:17px}
+  .qtybox .q{min-width:34px}
 
   /* 弹窗: 手机上整屏, 关闭按钮固定可点 */
   #modal{padding:0}
@@ -234,8 +272,8 @@ tbody tr:hover td:first-child{background:#f4f7ff}
 }
 /* 触屏没有 hover: 去掉粘滞高亮, 反馈交给 :active */
 @media (hover:none){
-  tbody tr:hover,tbody tr:hover td:first-child,.pin2 tbody tr:hover td:nth-child(2){background:#fff}
-  tbody tr:active,tbody tr:active td:first-child,.pin2 tbody tr:active td:nth-child(2){background:#eef3ff}
+  tbody tr:hover,tbody tr:hover td:first-child,tbody tr:hover td.pinr,.pin2 tbody tr:hover td:nth-child(2){background:#fff}
+  tbody tr:active,tbody tr:active td:first-child,tbody tr:active td.pinr,.pin2 tbody tr:active td:nth-child(2){background:#eef3ff}
   .idxcard:hover{box-shadow:none}
   .list li:hover{color:inherit}
   .newnews:hover{background:#f8f9fb;color:var(--text)}
@@ -259,6 +297,7 @@ tbody tr:hover td:first-child{background:#f4f7ff}
       border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">⟳ 刷新</button>
     <span id="genInfo" class="hint"></span>
     <span id="fetchInfo" class="hint"></span>
+    <span id="pageVer" class="hint" title="页面版本号：改动过的页面刷新后会变成新的号。如果这里还是旧号，说明你看到的是旧标签页/旧缓存，按 ⌘⇧R 硬刷新"></span>
   </header>
 
   <div class="tabs">
@@ -303,6 +342,7 @@ tbody tr:hover td:first-child{background:#f4f7ff}
           <th class="s" data-k="premium">溢价率</th>
           <th title="正股所属行业（东方财富 f127）">行业</th>
           <th>正股</th><th>核心驱动</th>
+          <th class="pinr" title="点一下按现价买 10 张进模拟仓（张数可在模拟仓页签的设置里改）；已在模拟仓的券显示「✓ 已加入」，再点只提示、不重复买入，加量用持仓表的 −/+">模拟仓</th>
         </tr></thead>
         <tbody></tbody>
       </table>
@@ -412,7 +452,7 @@ tbody tr:hover td:first-child{background:#f4f7ff}
       <div class="qjbar" style="margin-top:12px">
         <span class="qjopts">
           <label>初始资金 <input type="number" id="simInit" value="100000" step="10000" min="0"></label>
-          <label>单笔金额 <input type="number" id="simPer" value="10000" step="1000" min="0"></label>
+          <label title="点「＋模拟仓」/「买入」一次买多少张（可转债 1 手 = 10 张，持仓表里的 ± 也按 10 张）">每次加仓 <input type="number" id="simLot" value="10" step="10" min="10" style="width:70px"> 张</label>
           <label>手续费(单边‰) <input type="number" id="simFee" value="0.1" step="0.05" min="0"></label>
           <label>放量倍数 ≥ <input type="number" id="simMult" value="1.5" step="0.1" min="1" oninput="renderSim()"></label>
         </span>
@@ -424,20 +464,21 @@ tbody tr:hover td:first-child{background:#f4f7ff}
       </div>
     </div>
     <div class="card">
-      <h3>今日可买 · 量价齐升信号<small>买入价 = 当日现价（模拟按现价成交，单笔金额见上方设置）；点行看该券详情，手动记账用下面的表单</small></h3>
+      <h3>今日可买 · 量价齐升信号<small>买入价 = 当日现价（模拟按现价成交，每次加仓 10 张，可在上方设置里改）；已在模拟仓的券不会再买第二次，只提示；点行看该券详情，手动记账用下面的表单</small></h3>
       <div style="overflow-x:auto"><table id="simSignal"></table></div>
       <div class="qjbar" style="margin:12px 0 0">
         <span class="qjopts">
           <label>代码 <input type="text" id="simCode" placeholder="如 111024" style="width:100px"></label>
           <label>价格 <input type="number" id="simPrice" step="0.01" min="0" style="width:80px"></label>
-          <label>张数 <input type="number" id="simQty" step="10" min="10" style="width:80px" placeholder="留空按金额算"></label>
+          <label>张数 <input type="number" id="simQty" step="10" min="10" style="width:80px" placeholder="留空 = 每次张数"></label>
           <label>买入日 <input type="text" id="simDate" style="width:104px" placeholder="YYYY-MM-DD"></label>
         </span>
         <button type="button" class="qjbtn" onclick="simBuyManual()">手动买入</button>
+        <span class="hint" style="margin:0">用来补记一笔新券（可填历史买入日/价）；已在模拟仓的券不会重复买入，加量请用「持仓」表的 −/+</span>
       </div>
     </div>
     <div class="card">
-      <h3>持仓<small>「应卖日」= 买入后第 2 个交易日收盘（= 信号日 T+3）；到期的行标红；点行看该券详情</small></h3>
+      <h3>持仓<small>「应卖日」= 买入后第 2 个交易日收盘（= 信号日 T+3）；到期的行标红；<b>张数用 −/+ 按 1 手（10 张）现价加减</b>（＋ = 加仓摊薄成本，− = 按现价卖出并计入下面的成交记录）；点行看该券详情</small></h3>
       <div class="qjbar">
         <button type="button" class="qjbtn" onclick="simCloseDue()">⏱ 平掉所有到期仓位（按应卖日收盘价）</button>
         <span class="hint" id="simDue" style="margin:0"></span>
@@ -521,16 +562,35 @@ tbody tr:hover td:first-child{background:#f4f7ff}
       <div class="hint" id="mMinuteHint" style="margin:0 0 8px"></div>
       <div id="mMinute" style="height:320px"></div></div>
     <div class="card" id="cardKline" style="margin:0"><h3 id="mKlineTitle">近90日走势<small>K线 + 成交额</small></h3>
-      <div id="mKline" style="height:320px"></div></div>
+      <div class="measbar">
+        <button type="button" class="measbtn" id="mzBtnBond" onclick="toggleMeasure('bond')"
+          title="点开后在上面的K线图上按住拖一段, 算这段区间的收益(起止都按收盘价)">📏 区间收益</button>
+        <span class="hint" id="mzHintBond" style="margin:0"></span>
+      </div>
+      <div id="mKline" style="height:320px"></div>
+      <div class="measbox" id="mzBoxBond" style="display:none"></div></div>
   </div>
   <div class="card" id="cardStockKline" style="margin:10px 0 0"><h3 id="mStockTitle">近90日正股走势<small>正股收盘 + 成交额</small></h3>
-    <div id="mStockKline" style="height:280px"></div></div>
+    <div class="measbar">
+      <button type="button" class="measbtn" id="mzBtnStock" onclick="toggleMeasure('stock')"
+        title="点开后在上面的正股K线图上按住拖一段, 算这段区间的收益(起止都按收盘价)">📏 区间收益</button>
+      <span class="hint" id="mzHintStock" style="margin:0"></span>
+    </div>
+    <div id="mStockKline" style="height:280px"></div>
+    <div class="measbox" id="mzBoxStock" style="display:none"></div></div>
   <div class="card" id="cardDrivers" style="margin:10px 0"><h3>🔍 归因分析：影响今天走势的主要因素</h3>
     <div id="mDrivers"></div></div>
   <div class="card" id="cardNews" style="margin:0"><h3>📰 相关新闻（近两日）</h3><ul class="news" id="mNews"></ul></div>
 </div></div>
 
+<!-- 模拟仓的回执: 在榜单页签点「＋模拟仓」时人也看得见 -->
+<div id="toast" role="status" aria-live="polite"></div>
+
 <script>
+/* 页面版本号: 每次改动 index.html 都往上加一位(2026-09-21.4 -> .5 ...), 显示在页面右上角。
+   用处: 用户报问题时一眼看出他跑的是哪一版 —— 之前吃过"改了但标签页是旧的"的亏。 */
+const PAGE_VER='2026-09-22.1';
+document.getElementById('pageVer').textContent='版本 '+PAGE_VER;
 const UP='#d92b2b', DOWN='#0a8f4e', ACC='#2b5aed', ORG='#e8830c', PUR='#7c5cd6';
 const charts=[];
 const isMobile=()=>window.innerWidth<=820;   // 手机端阈值, 与 CSS 的 @media 保持一致
@@ -573,6 +633,37 @@ function klineAmount(kl,mult){
   const amt=kl.map(r=>+(((r[6]>0)?r[6]:(r[5]*(r[3]+r[4]+r[2])/3*mult))/1e8).toFixed(3));
   return {hasReal,amt};
 }
+/* ---- 周几: 日K图上要能直接看出"周一到周五"的节奏(周一效应/周五缩量这类问题必须看得见日期) ----
+   日期串是 'YYYY-MM-DD'(东财/腾讯源都是); 用本地时间解析(末尾不加 Z), 免得 UTC 把日期挪前一天
+   —— 挪一天正好会整体错成"周六/周日", 而 A 股周末不开市, 所以 tests/weekday_smoke.mjs 拿真实K线
+   断言"每个日期都落在周一~周五"来钉死这个时区坑。 */
+const WEEK_CN=['周日','周一','周二','周三','周四','周五','周六'];
+function weekdayCn(date){
+  const s=String(date||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return '';
+  const d=new Date(s+'T00:00:00');
+  return isNaN(d.getTime())?'':WEEK_CN[d.getDay()];
+}
+function isMondayCn(date){return weekdayCn(date)==='周一';}
+// '2026-09-18' -> '2026-09-18 周五'
+function dateWithWeek(date){const w=weekdayCn(date);return w?`${date} ${w}`:String(date);}
+// 横轴标签: "09-18 周五"(周一用强调色加粗 = 一周的起点); 塞不下的交给 ECharts 自动隐藏重叠
+function weekAxisLabel(extra){
+  return Object.assign({interval:'auto',hideOverlap:true,fontSize:10,
+    formatter:v=>{
+      const s=String(v), w=weekdayCn(s);
+      if(!w)return s.slice(5)||s;
+      return `${s.slice(5)} ${isMondayCn(s)?'{mon|'+w+'}':'{w|'+w+'}'}`;
+    },
+    rich:{mon:{color:ACC,fontWeight:'bold',fontSize:10},w:{color:'#7b8496',fontSize:10}}},extra||{});
+}
+// 每周一一条浅色竖虚线: 把整段K线切成"一周一格", 配合横轴/悬停即可定位任意一根是周几
+function weekSplitMarkLine(dates){
+  const mon=(dates||[]).filter(isMondayCn);
+  if(!mon.length)return undefined;
+  return {silent:true,symbol:'none',animation:false,label:{show:false},
+    lineStyle:{color:'#e3e8f2',width:1,type:'dashed'},data:mon.map(d=>({xAxis:d}))};
+}
 // 成交额基准线: 第 i 天取「前 n 天」(不含当日)的均值 —— 当日放量不会把基准抬高, 突破看得更清楚。
 // 历史不足 n 天时用已有的全部天数; 少于 minN 天返回 null(线从有数据处开始)。
 function baseLine(arr,n,minN=3){
@@ -613,6 +704,177 @@ function baseTrend(bl,th=TREND_TH){
     else if(st<0&&s>th)st=1;
   }
   return st;
+}
+/* ---- 区间收益(像 TradingView 的测量工具): 在K线图上拖出一段, 算这段赚/亏多少 ----
+   口径: 起止都取「收盘价」(图上主序列, 与 T+3 那套回测口径一致), 起点收盘买入 → 终点收盘卖出,
+   不含手续费。除收益率外还给最大回撤(收盘口径)/振幅/日均/累计成交额 —— 只看一个收益率容易误判,
+   回撤和振幅才说明这段钱好不好赚。
+   实现要点(都是实测出来的, 别随手改):
+   1) 用 ECharts 的 brush(框选)组件, 但 xAxisIndex 只绑「价格格子」(0)。一旦把量能格子也绑进去,
+      brush 自带的 outOfBrush 会把选区外的量能柱刷成一片灰; 量能格子的高亮由我们自己画 markArea。
+   2) brush 只在用户点开开关时才用 takeGlobalCursor 激活, 并且选项里要 toolbox:{show:false}
+      (否则 brush 会往图右上角塞一排工具箱图标)。这样"关着"时完全不影响手机上按住滑动页面
+      —— 激活态的 brush 会吃掉 touchmove 让页面滚不动(实测), 这正是"要拖选才激活"的理由。
+   3) 结果块画在图「下面」而不是上面: 拖选过程中它若把图往下挤, 画布在手指底下移位, 选区就飞了。 */
+const MEASURE={bond:false,stock:false};        // 两个图各一份开关(按钮分别在各自卡片里)
+const MEASURE_DATA={bond:null,stock:null};     // 当前图上的数据(每次开弹窗重新填)
+const MEASURE_IDS={
+  bond:{btn:'mzBtnBond',hint:'mzHintBond',box:'mzBoxBond'},
+  stock:{btn:'mzBtnStock',hint:'mzHintStock',box:'mzBoxStock'}};
+const MEASURE_FILL='rgba(43,90,237,0.10)', MEASURE_EDGE='rgba(43,90,237,0.55)';
+const MEASURE_HINT_ON='按住K线拖选一段（左右方向都行，点空白处取消）';
+// 区间收益(纯函数, 便于测试): kl = [日期,开,收,高,低,...], amt = 每日成交额(亿)
+// lot: 1手多少张/股(转债 10 / 正股 100), 用来把价差折成"每手赚多少元"
+function measureRange(kl,amt,i0,i1,lot=10){
+  const n=(kl||[]).length;
+  if(!n)return null;
+  const clamp=v=>Math.max(0,Math.min(n-1,Math.round(+v)));
+  i0=clamp(i0); i1=clamp(i1);
+  if(i1<i0){const t=i0;i0=i1;i1=t;}            // 从右往左拖也要能算
+  const p0=+kl[i0][2], p1=+kl[i1][2];
+  const days=i1-i0+1;
+  const d0=String(kl[i0][0]), d1=String(kl[i1][0]);
+  const calDays=(()=>{
+    const a=new Date(d0+'T00:00:00'), b=new Date(d1+'T00:00:00');
+    return (isNaN(a.getTime())||isNaN(b.getTime()))?null:Math.round((b-a)/864e5);})();
+  let hi=-Infinity,lo=Infinity,hc=-Infinity,lc=Infinity,sum=0,peak=p0,dd=0;
+  let hiD=d0,loD=d0,hcD=d0,lcD=d0;
+  for(let i=i0;i<=i1;i++){
+    const r=kl[i], c=+r[2], h=+r[3], l=+r[4];
+    if(isFinite(h)&&h>hi){hi=h;hiD=String(r[0]);}
+    if(isFinite(l)&&l<lo){lo=l;loD=String(r[0]);}
+    if(isFinite(c)&&c>hc){hc=c;hcD=String(r[0]);}
+    if(isFinite(c)&&c<lc){lc=c;lcD=String(r[0]);}
+    if(isFinite(c)&&c>peak)peak=c;
+    if(peak>0&&isFinite(c))dd=Math.min(dd,(c/peak-1)*100);
+    sum+=(amt&&isFinite(+amt[i]))?+amt[i]:0;
+  }
+  const ret=(p0>0)?(p1/p0-1)*100:null;
+  return {i0,i1,d0,d1,p0,p1,ret,diff:p1-p0,lot,days,calDays,
+    hi,lo,hiD,loD,hc,hcD,lc,lcD,dd,amtSum:+sum.toFixed(3),
+    amp:(p0>0&&isFinite(hi)&&isFinite(lo))?(hi-lo)/p0*100:null,
+    perDay:(ret!=null)?ret/days:null};
+}
+function measureBrushOption(){                 // 两个K线图的 brush 配置(见上方注释 1、2)
+  return {toolbox:false,xAxisIndex:0,brushType:'lineX',brushMode:'single',
+    transformable:false,removeOnClick:true,throttleType:'debounce',throttleDelay:80,
+    brushStyle:{borderWidth:1,color:MEASURE_FILL,borderColor:MEASURE_EDGE}};
+}
+function toggleMeasure(key){
+  MEASURE[key]=!MEASURE[key];
+  const btn=document.getElementById(MEASURE_IDS[key].btn);
+  if(btn)btn.classList.toggle('on',MEASURE[key]);
+  const hint=document.getElementById(MEASURE_IDS[key].hint);
+  if(hint)hint.textContent=(MEASURE[key]&&MEASURE_DATA[key])?MEASURE_HINT_ON:'';
+  applyMeasureCursor(key);
+}
+/* 每次 openBond 渲染完K线都要调一次: 图表实例是新建的(mk() 会 dispose 旧的),
+   开关还开着就得把 brush 光标重新点亮, 并清掉上一只券留下的选区/结果。 */
+function setupMeasure(key,chart,d){
+  MEASURE_DATA[key]=(chart&&d)?Object.assign({chart},d):null;
+  const ids=MEASURE_IDS[key];
+  const btn=document.getElementById(ids.btn);
+  if(btn)btn.classList.toggle('on',!!MEASURE[key]);
+  const hint=document.getElementById(ids.hint);
+  if(hint)hint.textContent=(MEASURE[key]&&MEASURE_DATA[key])?MEASURE_HINT_ON:'';
+  clearMeasureBox(key);
+  if(!chart)return;
+  if(!chart.__meas){
+    chart.__meas=true;
+    chart.on('brushSelected',p=>onBrushSelected(key,p));
+    // 拖完松手(brushEnd)把悬停提示收掉: 手机上那个提示块很大, 正好盖住刚拖出来的选区
+    chart.on('brushEnd',()=>{if(MEASURE[key])chart.dispatchAction({type:'hideTip'});});
+  }
+  applyMeasureCursor(key);
+}
+function applyMeasureCursor(key){
+  const d=MEASURE_DATA[key], ch=d&&d.chart;
+  if(!ch||(typeof ch.isDisposed==='function'&&ch.isDisposed()))return;
+  const on=!!MEASURE[key];
+  if(!on&&!ch.__measOn)return;                 // 从没激活过就不用发"关闭"指令
+  ch.dispatchAction({type:'takeGlobalCursor',key:'brush',
+    brushOption:on?{brushType:'lineX',brushMode:'single'}:{brushType:false}});
+  ch.__measOn=on;
+  if(!on){                                     // 关掉时把选区与结果一起收干净
+    ch.dispatchAction({type:'brush',command:'clear'});
+    clearMeasureMark(key); clearMeasureBox(key);
+  }
+}
+/* 选区对应的起止下标。优先用选区在轴上的 coordRange: 实测「折线」序列(正股收盘那条线)在 brush 里
+   **拿不到** selected.dataIndex(只有蜡烛/柱状这类给), 只认 dataIndex 的话正股图会永远"拖了没反应";
+   而 coordRange 两种序列都给, 且与 dataIndex 的口径逐位一致(蜡烛图上实测相同)。 */
+function measureIdxOf(area,sels){
+  const cr=area&&area.coordRange;
+  if(cr&&cr.length===2&&isFinite(cr[0])&&isFinite(cr[1]))return [cr[0],cr[1]];
+  const sel=(sels||[]).filter(s=>s&&s.dataIndex&&s.dataIndex.length)[0];
+  const idx=(sel&&sel.dataIndex)||[];
+  return idx.length?[idx[0],idx[idx.length-1]]:null;
+}
+function onBrushSelected(key,p){
+  if(!MEASURE[key])return;
+  const d=MEASURE_DATA[key]; if(!d)return;
+  const batch=(p&&p.batch&&p.batch[0])||null;
+  const area=(batch&&batch.areas&&batch.areas[0])||null;
+  const idx=(area?measureIdxOf(area,(batch&&batch.selected)||[]):null);
+  if(!idx){clearMeasureMark(key);clearMeasureBox(key);return;}   // 空选/点空白 -> 一起清
+  const m=measureRange(d.kl,d.amt,idx[0],idx[1],d.lot);
+  if(!m){clearMeasureBox(key);return;}
+  drawMeasureMark(key,m.i0,m.i1);              // 量能格子上的高亮(价格格子由 brush 自己画)
+  const el=document.getElementById(MEASURE_IDS[key].box);
+  if(el){el.innerHTML=measureHtml(m);el.style.display='';}
+}
+function seriesPatch(idx,patch){               // 按下标合并: 只改第 idx 个系列, 其余给空对象
+  const arr=[]; for(let i=0;i<=idx;i++)arr.push(i===idx?patch:{});
+  return arr;
+}
+function drawMeasureMark(key,i0,i1){
+  const d=MEASURE_DATA[key]; if(!d)return;
+  const a=[{xAxis:d.dates[i0]},{xAxis:d.dates[i1]}];
+  d.chart.setOption({series:seriesPatch(d.volIdx,{markArea:{silent:true,animation:false,
+    itemStyle:{color:MEASURE_FILL,borderColor:MEASURE_EDGE,borderWidth:1},data:[[a[0],a[1]]]}})});
+}
+function clearMeasureMark(key){
+  const d=MEASURE_DATA[key]; if(!d)return;
+  d.chart.setOption({series:seriesPatch(d.volIdx,{markArea:{data:[]}})});
+}
+function clearMeasureBox(key){
+  const el=document.getElementById(MEASURE_IDS[key].box);
+  if(el){el.style.display='none';el.innerHTML='';}
+}
+function measureHtml(m){
+  const c=v=>(v==null?'':(v>0?'up':(v<0?'down':'flat')));
+  const kpi=(k,v,c2='',tip='')=>`<div class="kpi"${tip?` title="${tip}"`:''}>`
+    +`<div class="k">${k}</div><div class="v${c2?' '+c2:''}">${v}</div></div>`;
+  const md=s=>String(s||'').slice(5);          // '2026-06-10' -> '06-10'
+  const unit=m.lot===10?'张':'股';
+  const money=m.diff*m.lot;
+  return `<div class="measline">${dateWithWeek(m.d0)} 收 <b>${fmt(m.p0,3)}</b>　→　`
+    +`${dateWithWeek(m.d1)} 收 <b>${fmt(m.p1,3)}</b>`
+    +`<br><span class="hint" style="margin:0">共 ${m.days} 个交易日`
+    +(m.calDays!=null?` / ${m.calDays} 个自然日`:'')
+    +`　起点收盘买入 → 终点收盘卖出, 不含手续费</span></div>`
+    +`<div class="hist-kpis" style="margin:8px 0 0">`
+    +kpi('区间收益',m.ret==null?'-':pct(m.ret),c(m.ret))
+    +kpi(`每手(${m.lot}${unit})`,(money>=0?'+':'-')+Math.abs(Math.round(money))+' 元',c(money),
+      `1手 = ${m.lot}${unit}, 按价差算, 不含手续费`)
+    +kpi('最高收 '+md(m.hcD),fmt(m.hc,3),'','区间内最高「收盘价」(不是盘中最高价)')
+    +kpi('最低收 '+md(m.lcD),fmt(m.lc,3),'','区间内最低「收盘价」(不是盘中最低价)')
+    +kpi('最大回撤',m.dd==null?'-':pct(m.dd),c(m.dd),'收盘价口径: 从区间内阶段高点到其后最低收盘')
+    +kpi('振幅',m.amp==null?'-':fmt(m.amp,2)+'%','','盘中最高价与最低价之差 ÷ 起点收盘')
+    +kpi('日均',m.perDay==null?'-':pct(m.perDay),c(m.perDay),'区间收益 ÷ 交易日数(简单平均, 不是年化)')
+    +kpi('累计成交额',fmt(m.amtSum,1)+'亿')
+    +`</div>`;
+}
+function resetMeasure(){                        // 关弹窗时复位: 别让下一次打开静默处于"拖选"状态
+  ['bond','stock'].forEach(k=>{
+    MEASURE[k]=false; MEASURE_DATA[k]=null;
+    const ids=MEASURE_IDS[k];
+    const btn=document.getElementById(ids.btn);
+    if(btn)btn.classList.remove('on');
+    const hint=document.getElementById(ids.hint);
+    if(hint)hint.textContent='';
+    clearMeasureBox(k);
+  });
 }
 // 分时累计量 -> 每分钟量(腾讯分时的 v 是累计值, 东财是单分钟值, 这里自动判断)
 function minuteVol(points){
@@ -879,7 +1141,7 @@ function renderTable(){
     bonds=bonds.filter(b=>{const r=qijinOf(b);return r.ok&&(!nh||r.newHigh);});}
   const tb=document.querySelector('#rankTable tbody');
   if(!bonds.length){
-    tb.innerHTML='<tr><td colspan="13" class="hint" style="cursor:default;text-align:center;padding:26px">'
+    tb.innerHTML='<tr><td colspan="14" class="hint" style="cursor:default;text-align:center;padding:26px">'
       +(QJ_ON?'当前没有满足「量价齐升」的券 —— 可调低倍数或取消「创20日新高」':'该日无数据')+'</td></tr>';
     return;
   }
@@ -904,7 +1166,8 @@ function renderTable(){
       <td>${b.premium!=null?fmt(b.premium,1)+'%':'-'}</td>
       <td>${b.industry||'-'}</td>
       <td>${b.stock_name||'-'} <span class="${cls(b.stock_chg)}">${pct(b.stock_chg)}</span></td>
-      <td>${dr}</td></tr>`;
+      <td>${dr}</td>
+      <td class="pinr">${simQuickBtn(b.code,b.price,b.name,DAY.date)}</td></tr>`;
   }).join('');
 }
 document.querySelectorAll('#rankTable th.s').forEach(th=>{
@@ -928,6 +1191,7 @@ function toggleMetrics(){
   if(b)b.textContent=open?'收起指标 ▴':'展开全部指标 ▾';
 }
 function closeModal(){document.getElementById('modal').style.display='none';
+  resetMeasure();          // 复位区间收益开关: 免得下次打开时静默处于"拖选"状态(手机上会挡住滑动翻页)
   lockBody(false);
   document.querySelectorAll('#modal .card').forEach(c=>{});
 }
@@ -962,6 +1226,12 @@ function openBond(code,opt){
   ['cardMinute','cardKline','cardStockKline','cardDrivers','cardNews']
     .forEach(id=>document.getElementById(id).style.display='');
   document.getElementById('mKlineTitle').innerHTML='近90日走势<small>K线 + 成交额</small>';
+  // 分时图是单日: 把"哪天、周几"写进标题(周末/节假日回看周五数据时最容易看错)
+  const mdate=(b.minute||{}).date||(DAY&&DAY.date)||'';
+  document.querySelector('#cardMinute h3').innerHTML=
+    '今日分时对比（归一化 %）<small>'
+    +(weekdayCn(mdate)?`${dateWithWeek(mdate)}　`:'')
+    +'转债 vs 正股 vs 中证转债</small>';
   document.getElementById('modal').style.display='block';
   lockBody(true);
   setNav(opt.navList||sortedBonds().map(x=>x.code),code,b.name,opt.opener||openBond);
@@ -1063,8 +1333,10 @@ function openBond(code,opt){
     document.getElementById('mKlineTitle').innerHTML=
       '近90日走势<small>K线 + 成交额(亿)　虚线 = 前20日均额（量能基准'+btr+'）'
       +(lr!=null?`　今日 ${lr.toFixed(2)}x${lr>=VOL_BREAK?'　🔥放量突破':''}`:'')
+      +'　淡竖虚线 = 每周一（横轴标了周几）'
       +(hasRealAmt?'':'　⚠ 腾讯源无成交额，柱高按量价估算')+'</small>';
     kc.setOption({
+      brush:measureBrushOption(), toolbox:{show:false},  // 区间收益拖选用; toolbox 必须显式关掉, 否则右上角会多一排图标
       // 十字线穿透上下两个格子(axisPointer.link), 悬停时一根竖线同时对准价和量;
       // tooltip 用自定义 formatter: 价、涨跌幅、成交量、基准、倍数一次看全
       tooltip:{trigger:'axis',axisPointer:{type:'line',lineStyle:{color:'#9aa4b8',width:1,type:'dashed'}},
@@ -1084,7 +1356,7 @@ function openBond(code,opt){
                 +`　<span style="color:var(--sub)">期内最低 ${pct(dd)}</span>`;
             }
           }
-          return `${r[0]}<br>开 ${fmt(r[1])}　收 <b>${fmt(r[2])}</b>`
+          return `${dateWithWeek(r[0])}<br>开 ${fmt(r[1])}　收 <b>${fmt(r[2])}</b>`
             +(chg==null?'':`　<span style="color:${chg>=0?UP:DOWN}">${pct(chg)}</span>`)+'<br>'
             +`高 ${fmt(r[3])}　低 ${fmt(r[4])}<br>成交额 <b>${fmt(amt[i])}亿</b>`
             +(ratio==null?'':`　基准 ${fmt(bl[i])}亿　<b style="color:${ratio>=VOL_BREAK?ORG:'inherit'}">${ratio.toFixed(2)}x${ratio>=VOL_BREAK?' 🔥量能突破':''}</b>`)
@@ -1094,13 +1366,13 @@ function openBond(code,opt){
       legend:{data:['收盘价','成交额(亿)','20日均额(亿)'],top:0},
       grid:[{left:48,right:16,top:34,height:'56%'},{left:48,right:16,top:'74%',height:'18%'}],
       xAxis:[{type:'category',data:dates,gridIndex:0,axisLabel:{show:false}},
-             {type:'category',data:dates,gridIndex:1,axisLabel:{interval:14,fontSize:10}}],
+             {type:'category',data:dates,gridIndex:1,axisLabel:weekAxisLabel()}],
       yAxis:[{scale:true,gridIndex:0},
              {scale:true,gridIndex:1,splitLine:{show:false},
               axisLabel:{formatter:v=>(Math.abs(v)>=10?v.toFixed(0):v.toFixed(1))}}],
       series:[
         {name:'收盘价',type:'candlestick',data:kl.map(r=>[r[1],r[2],r[4],r[3]]),
-         xAxisIndex:0,yAxisIndex:0,
+         xAxisIndex:0,yAxisIndex:0,markLine:weekSplitMarkLine(dates),
          itemStyle:{color:UP,color0:DOWN,borderColor:UP,borderColor0:DOWN}},
         // 高于基准 VOL_BREAK 倍的柱子标橙 -> 一眼看出量能突破（itemStyle 只写默认色, 图例色块跟普通柱一致）
         {name:'成交额(亿)',type:'bar',data:amt.map((v,i)=>({value:v,
@@ -1108,7 +1380,9 @@ function openBond(code,opt){
          xAxisIndex:1,yAxisIndex:1,itemStyle:{color:'#b9c6e4'}},
         {name:'20日均额(亿)',type:'line',data:bl,xAxisIndex:1,yAxisIndex:1,symbol:'none',
          connectNulls:true,lineStyle:{width:1.3,color:ACC,type:'dashed'},itemStyle:{color:ACC}}]});
-  } else kc.setOption({title:{text:'无K线数据',left:'center',top:'center'}});
+    setupMeasure('bond',kc,{kl,amt,dates,lot:10,volIdx:1});   // 区间收益: 转债 1手=10张
+  } else {kc.setOption({title:{text:'无K线数据',left:'center',top:'center'}});
+    setupMeasure('bond',null,null);}
   // 正股90日走势 + 正股成交量(看正股是否同步放量)
   const sc=mk('mStockKline');
   const srows=b.stock_kline_90d||[];
@@ -1122,15 +1396,17 @@ function openBond(code,opt){
     document.getElementById('mStockTitle').innerHTML=
       '近90日正股走势<small>正股收盘 + 成交额(亿)　虚线 = 前20日均额（量能基准）'
       +(slr!=null?`　今日 ${slr.toFixed(2)}x${slr>=VOL_BREAK?'　🔥放量突破':''}`:'')
+      +'　淡竖虚线 = 每周一（横轴标了周几）'
       +(sHasReal?'':'　⚠ 腾讯源无成交额，柱高按量价估算')+'</small>';
     sc.setOption({
+      brush:measureBrushOption(), toolbox:{show:false},   // 区间收益拖选(同转债K线)
       tooltip:{trigger:'axis',axisPointer:{type:'line',lineStyle:{color:'#9aa4b8',width:1,type:'dashed'}},
         formatter:ps=>{
           const i=(ps&&ps.length)?ps[0].dataIndex:-1, r=srows[i];
           if(!r)return '';
           const prev=i>0?+srows[i-1][2]:null, chg=prev?(r[2]/prev-1)*100:null;
           const ratio=(sbl[i]>0)?sAmt[i]/sbl[i]:null;
-          return `${r[0]}<br>${b.stock_name||'正股'} 收 <b>${fmt(r[2])}</b>`
+          return `${dateWithWeek(r[0])}<br>${b.stock_name||'正股'} 收 <b>${fmt(r[2])}</b>`
             +(chg==null?'':`　<span style="color:${chg>=0?UP:DOWN}">${pct(chg)}</span>`)+'<br>'
             +`高 ${fmt(r[3])}　低 ${fmt(r[4])}<br>成交额 <b>${fmt(sAmt[i])}亿</b>`
             +(ratio==null?'':`　基准 ${fmt(sbl[i])}亿　<b style="color:${ratio>=VOL_BREAK?ORG:'inherit'}">${ratio.toFixed(2)}x${ratio>=VOL_BREAK?' 🔥放量':''}</b>`);
@@ -1139,13 +1415,13 @@ function openBond(code,opt){
       legend:{data:['正股收盘','正股成交额(亿)','20日均额(亿)'],top:0},
       grid:[{left:56,right:16,top:30,height:'54%'},{left:56,right:16,top:'74%',height:'20%'}],
       xAxis:[{type:'category',data:srows.map(r=>r[0]),gridIndex:0,axisLabel:{show:false}},
-             {type:'category',data:srows.map(r=>r[0]),gridIndex:1,
-              axisLabel:{interval:14,fontSize:10}}],
+             {type:'category',data:srows.map(r=>r[0]),gridIndex:1,axisLabel:weekAxisLabel()}],
       yAxis:[{scale:true,gridIndex:0},
              {scale:true,gridIndex:1,splitLine:{show:false},
               axisLabel:{formatter:v=>(Math.abs(v)>=10?v.toFixed(0):v.toFixed(1))}}],
       series:[
         {name:'正股收盘',type:'line',xAxisIndex:0,yAxisIndex:0,data:srows.map(r=>+r[2]),
+         markLine:weekSplitMarkLine(srows.map(r=>r[0])),
          symbol:'none',lineStyle:{width:1.8,color:ORG},areaStyle:{opacity:.07,color:ORG}},
         {name:'正股成交额(亿)',type:'bar',xAxisIndex:1,yAxisIndex:1,
          data:sAmt.map((v,i)=>({value:v,
@@ -1153,8 +1429,12 @@ function openBond(code,opt){
          itemStyle:{color:'#f3c9a0'}},
         {name:'20日均额(亿)',type:'line',data:sbl,xAxisIndex:1,yAxisIndex:1,symbol:'none',
          connectNulls:true,lineStyle:{width:1.3,color:ACC,type:'dashed'},itemStyle:{color:ACC}}]});
-  } else sc.setOption({title:{text:opt.stockMsg||'正股K线数据缺失（运行 python3 backfill_kline.py 可补齐）',
+    // 区间收益: 正股按 1手=100股(科创板 688/689 是 200股), 与上面的成交量纲同源判断
+    setupMeasure('stock',sc,{kl:srows,amt:sAmt,dates:srows.map(r=>r[0]),
+      lot:(scode.startsWith('688')||scode.startsWith('689'))?200:100,volIdx:1});
+  } else {sc.setOption({title:{text:opt.stockMsg||'正股K线数据缺失（运行 python3 backfill_kline.py 可补齐）',
     left:'center',top:'center'}});
+    setupMeasure('stock',null,null);}
   // 归因
   document.getElementById('mDrivers').innerHTML=(b.drivers||[]).length
     ? (b.drivers||[]).map(d=>
@@ -1445,21 +1725,26 @@ async function queryBond(code){
   if(kl.length){
     const {hasReal,amt}=klineAmount(kl,10);   // 转债 1手=10张
     document.getElementById('bkKlineTitle').innerHTML=
-      '近90日价格走势<small>K线 + 成交额(亿)'
+      '近90日价格走势<small>K线 + 成交额(亿)　淡竖虚线 = 每周一（横轴标了周几）'
       +(hasReal?'':'　⚠ 无真实成交额，柱高按量价估算')+'</small>';
     kc.setOption({
-      tooltip:{trigger:'axis'},
+      tooltip:{trigger:'axis',axisPointer:{type:'line',lineStyle:{color:'#9aa4b8',width:1,type:'dashed'}},
+        formatter:ps=>{                                   // 默认 tooltip 只显示数字数组, 这里补上开/收/高/低和成交额
+          const i=(ps&&ps.length)?ps[0].dataIndex:-1, r=kl[i];
+          if(!r)return '';
+          return `${dateWithWeek(r[0])}<br>开 ${fmt(r[1])}　收 <b>${fmt(r[2])}</b><br>`
+            +`高 ${fmt(r[3])}　低 ${fmt(r[4])}<br>成交额 <b>${fmt(amt[i])}亿</b>`;
+        }},
       legend:{data:['日K','成交额(亿)'],top:0},
       grid:[{left:56,right:16,top:30,height:'52%'},{left:56,right:16,top:'72%',height:'20%'}],
       xAxis:[{type:'category',data:kl.map(r=>r[0]),gridIndex:0,axisLabel:{show:false}},
-             {type:'category',data:kl.map(r=>r[0]),gridIndex:1,
-              axisLabel:{interval:14,fontSize:10}}],
+             {type:'category',data:kl.map(r=>r[0]),gridIndex:1,axisLabel:weekAxisLabel()}],
       yAxis:[{scale:true,gridIndex:0},
              {scale:true,gridIndex:1,splitLine:{show:false},
               axisLabel:{formatter:v=>(Math.abs(v)>=10?v.toFixed(0):v.toFixed(1))}}],
       series:[
         {name:'日K',type:'candlestick',xAxisIndex:0,yAxisIndex:0,
-         data:kl.map(r=>[r[1],r[2],r[4],r[3]]),
+         data:kl.map(r=>[r[1],r[2],r[4],r[3]]),markLine:weekSplitMarkLine(kl.map(r=>r[0])),
          itemStyle:{color:UP,color0:DOWN,borderColor:UP,borderColor0:DOWN}},
         {name:'成交额(亿)',type:'bar',xAxisIndex:1,yAxisIndex:1,data:amt,
          itemStyle:{color:'#b9c6e4'}}]});
@@ -1555,7 +1840,7 @@ function renderFoot(){
 
 /* ---------------- 放量榜 ---------------- */
 let VOL=null, VOLDATE=null;
-const VOL_HEAD=['#','转债','现价','涨跌幅','量比20','量比5','成交额(亿)','换手率','60日分位','正股','评分','标签'];
+const VOL_HEAD=['#','转债','现价','涨跌幅','量比20','量比5','成交额(亿)','换手率','60日分位','正股','评分','标签','模拟仓'];
 const VOL_TABLE_CODES={};   // 各分组表的展示顺序, 供弹窗「上一个/下一个」翻看
 function volRow(m,i,group){
   const tags=(m.tags||[]).map(t=>{
@@ -1575,11 +1860,16 @@ function volRow(m,i,group){
     <td class="${pos}" style="font-weight:600">${fmt(m.pos60)}</td>
     <td>${m.stock_name||'-'}<span class="${cls(m.stock_chg)}" style="margin-left:4px">${m.stock_chg==null?'':pct(m.stock_chg,1)}</span></td>
     <td><b>${fmt(m.score,1)}</b></td>
-    <td style="white-space:normal">${tags}</td></tr>`;
+    <td style="white-space:normal">${tags}</td>
+    <td class="pinr">${simQuickBtn(m.code,m.price,m.name,VOLDATE)}</td></tr>`;
+}
+/* 表头: 最后一列(模拟仓)带 pinr = 钉在表格右边缘, 横滑时按钮也一直在视野里 */
+function simHeadHtml(head){
+  return head.map((h,i)=>`<th${i===head.length-1?' class="pinr"':''}>${h}</th>`).join('');
 }
 function fillVolTable(sel,items,empty){
   const t=document.querySelector(sel);
-  t.querySelector('thead').innerHTML='<tr>'+VOL_HEAD.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+  t.querySelector('thead').innerHTML='<tr>'+simHeadHtml(VOL_HEAD)+'</tr>';
   VOL_TABLE_CODES[sel]=(items||[]).map(m=>m.code);
   const tb=t.querySelector('tbody');
   if(!items||!items.length){ tb.innerHTML=`<tr><td colspan="${VOL_HEAD.length}" class="hint" style="cursor:default">${empty}</td></tr>`; return; }
@@ -1660,12 +1950,13 @@ function coilRowHtml(m,i,tbl){
     <td>${fmt(m.range20*100,1)}%</td>
     <td>${m.shrink} 天</td>
     <td>${m.stock_name||'-'} <span class="${cls(m.stock_chg)}">${m.stock_chg==null?'':pct(m.stock_chg,1)}</span></td>
-    <td style="white-space:normal">${coilTags(m)}</td></tr>`;
+    <td style="white-space:normal">${coilTags(m)}</td>
+    <td class="pinr">${simQuickBtn(m.code,m.close,m.name,COIL&&COIL.date)}</td></tr>`;
 }
-const COIL_HEAD=['#','转债','蓄势分','收盘','当日涨幅','量比(20日)','60日分位','20日振幅','连续缩量','正股','标签'];
+const COIL_HEAD=['#','转债','蓄势分','收盘','当日涨幅','量比(20日)','60日分位','20日振幅','连续缩量','正股','标签','模拟仓'];
 function fillCoilTable(sel,items,empty,tbl){
   const t=document.querySelector(sel);
-  t.querySelector('thead').innerHTML='<tr>'+COIL_HEAD.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+  t.querySelector('thead').innerHTML='<tr>'+simHeadHtml(COIL_HEAD)+'</tr>';
   const tb=t.querySelector('tbody');
   tb.innerHTML=(items&&items.length)
     ? items.map((m,i)=>coilRowHtml(m,i,tbl)).join('')
@@ -2027,40 +2318,145 @@ document.querySelectorAll('#vqTable th.s').forEach(th=>{
 /* ---------------- 模拟仓（按量价齐升策略试手） ----------------
    口径与「量价验证」一致: 信号日收盘确认 -> 次日开盘买入 -> 持有到 T+3 收盘卖出。
    买入价: 自动买入用当日现价(模拟按现价成交), 手动买入用你填的价; 平仓同理。
+   两个建仓入口: ①榜单行尾的「＋模拟仓」(按现价买入)
+               ②本页签的「今日可买 / 手动买入」表单
+   张数: 点一次 = 「每次加仓」(simLot, 默认 1 手 = SIM_LOT = 10 张), 不再按金额换算;
+        想一次买多点去上方设置里改「每次加仓」，或用手动买入表单填张数。
+   同一只券在持仓里只保留一行: 已在仓的券按钮变「✓ 已加入」, 再点只回执当前持仓、不再买入
+        (要加量用持仓表的 −/+, 每次 10 张; 手动买入表单是显式操作, 仍可继续加仓摊薄成本)。
    数据存 localStorage, 刷新/关页面都不丢; 可导出导入 JSON。 */
 const SIM_KEY='cbf_sim_v1';
-let SIM=null, SIMCAL=null, SIMK=null, SIMNAME=null, SIM_LOADING=false, SIM_HINT_T=null;
+const SIM_LOT=10;      // 可转债最小交易单位: 1 手 = 10 张(沪深两市一致)
+let SIM=null, SIMCAL=null, SIMK=null, SIMNAME=null, SIM_LOADING_P=null, SIM_HINT_T=null, SIM_TOAST_T=null;
+/* 存档规整: 缺字段补默认(尤其是旧存档没有 lot —— 那会儿按「单笔金额」算张数, 现在统一回到 1 手)。
+   导入旧 JSON 也走这里, 否则 lot 会是 undefined(输入框里显示成 "undefined")。 */
+function simNormalize(o){
+  o.positions=o.positions||[]; o.closed=o.closed||[];
+  if(o.seq==null)o.seq=o.positions.length+o.closed.length+1;
+  if(!(o.lot>=SIM_LOT))o.lot=SIM_LOT;
+  if(!(o.init>=0))o.init=100000;
+  if(!(o.cash>=0))o.cash=o.init;
+  if(!(o.feeBp>=0))o.feeBp=0.1;
+  return o;
+}
 function simState(){
   if(SIM)return SIM;
   try{SIM=JSON.parse(localStorage.getItem(SIM_KEY)||'null');}catch(e){SIM=null;}
   if(!SIM||typeof SIM!=='object')SIM=null;
-  if(!SIM)SIM={init:100000,cash:100000,per:10000,feeBp:0.1,seq:1,positions:[],closed:[]};
-  SIM.positions=SIM.positions||[]; SIM.closed=SIM.closed||[];
-  if(SIM.seq==null)SIM.seq=SIM.positions.length+SIM.closed.length+1;
-  return SIM;
+  if(!SIM)SIM={init:100000,cash:100000,feeBp:0.1,seq:1,positions:[],closed:[]};
+  return simNormalize(SIM);
 }
-function simPersist(){try{localStorage.setItem(SIM_KEY,JSON.stringify(SIM));}catch(e){}}
+/* 「每次加仓」张数: 输入框优先, 兜底存档值, 再兜底 1 手; 永远取整到手 */
+function simLot(){
+  const el=document.getElementById('simLot');
+  const v=el?parseFloat(el.value):NaN;
+  const n=(isFinite(v)&&v>0)?v:simState().lot;
+  const lot=Math.floor((isFinite(n)&&n>0?n:SIM_LOT)/SIM_LOT)*SIM_LOT;
+  return lot>=SIM_LOT?lot:SIM_LOT;
+}
+function simPersist(){try{localStorage.setItem(SIM_KEY,JSON.stringify(SIM));}catch(e){} simServerSync();}
+/* 服务端镜像: 模拟仓的真源**始终是本机 localStorage**, 这里只是把一份副本 POST 给 app.py
+   存成 data/portfolio.json —— 定时推送脚本读的是服务端那份, 所以不依赖页面开着。
+   同步失败不影响本地账目(只影响推送内容的新旧), 所以静默处理 + chip 上显示状态。 */
+let SIM_SYNC_T=null, SIM_SYNC_LAST={at:0,ok:null,msg:''};
+function simServerSync(delay=1500){
+  if(SIM_SYNC_T)clearTimeout(SIM_SYNC_T);
+  SIM_SYNC_T=setTimeout(()=>{SIM_SYNC_T=null;simServerSyncNow();},delay);
+}
+async function simServerSyncNow(){
+  if(SIM_SYNC_T){clearTimeout(SIM_SYNC_T);SIM_SYNC_T=null;}
+  let ok=false,msg='';
+  try{
+    const r=await fetch('/api/sim',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(simState())});
+    if(!r.ok){
+      // 404 几乎总是: 正在跑的 app.py 是改动前的旧进程(它还没有这个接口)。
+      // 这个坑本项目踩过多次(见 .workbuddy/memory/2026-09-17.md), 所以直接把原因写进提示。
+      msg = r.status===404
+        ? '接口不存在 —— app.py 是改动前的旧进程，重启 app.py 后才生效'
+        : 'HTTP '+r.status;
+    }else{
+      const j=await r.json();
+      ok=!!j.ok; msg=j.msg||j.error||'';
+    }
+  }catch(e){ msg='服务端没开? '+e.message; }
+  SIM_SYNC_LAST={at:Date.now(),ok,msg};
+  simRenderSyncState();
+  return ok;
+}
+function simSyncText(){
+  const L=SIM_SYNC_LAST;
+  if(!L.at)return '未同步';
+  const t=new Date(L.at).toLocaleTimeString('zh-CN',{hour12:false});
+  return (L.ok?'已同步 ':'同步失败 ')+t;
+}
+function simRenderSyncState(){
+  const el=document.getElementById('simSyncChip');
+  if(!el)return;
+  const L=SIM_SYNC_LAST;
+  el.title=(L.ok===false?'':'同步给服务端供定时推送读取。')+(L.msg||'');
+  el.innerHTML=`推送镜像 <b style="${L.ok===false?'color:#c0392b':''}">${simSyncText()}</b>`;
+}
+/* 开机同步: 让服务端镜像不必等第一次买卖就存在。
+   ⚠ 本地(这个浏览器)是空仓时**绝不主动推** —— 换个浏览器打开时 localStorage 是空的,
+   一推就把服务端已有的持仓冲成空仓, 定时推送随后就要发"空仓"了。只读状态并提示。 */
+async function simBootSync(){
+  const s=simState();
+  const localN=s.positions.length+s.closed.length;
+  try{
+    const j=await (await fetch('/api/sim')).json();
+    const p=j.portfolio||{};
+    const remoteN=j.exists?((p.positions||[]).length+(p.closed||[]).length):-1;
+    if(localN===0){
+      SIM_SYNC_LAST={at:0,ok:null,msg:remoteN>0
+        ?`这个浏览器是空仓, 服务端有 ${remoteN} 笔记录 —— 没动它(避免冲掉)`
+        :'本地与服务端都还没有持仓'};
+      simRenderSyncState();
+      return false;
+    }
+    return await simServerSyncNow();
+  }catch(e){
+    SIM_SYNC_LAST={at:Date.now(),ok:false,msg:'服务端没开? '+e.message};
+    simRenderSyncState();
+    return false;
+  }
+}
 function simHint(msg,ms=4000){
-  const el=document.getElementById('simHint'); if(!el)return;
-  el.textContent=msg;
+  const el=document.getElementById('simHint');
+  if(el)el.textContent=msg||'';
   if(SIM_HINT_T)clearTimeout(SIM_HINT_T);
-  if(msg)SIM_HINT_T=setTimeout(()=>{el.textContent='';},ms);
+  if(msg)SIM_HINT_T=setTimeout(()=>{if(el)el.textContent='';},ms);
+  simToast(msg,ms);
 }
-/* 交易日日历 + 各券K线(复用「量价验证」那份数据) */
+/* 在榜单页签点「＋模拟仓」时 #simHint 在另一个页签里看不见 -> 再弹一层浮层回执(成/败都看得见)
+   「✖ 平仓 …亏损…」这类只是成交回执(不是出错), 别染成红色; 真正的失败才用 bad。 */
+function simToast(msg,ms=4000){
+  const el=document.getElementById('toast'); if(!el)return;
+  if(SIM_TOAST_T)clearTimeout(SIM_TOAST_T);
+  el.className=msg?(/^⚠|失败|无效|不足|不在交易日历|拿不到|还没加载完/.test(msg)?'on bad':'on'):'';
+  el.textContent=msg||'';
+  if(msg)SIM_TOAST_T=setTimeout(()=>{el.className='';},ms);
+}
+/* 交易日日历 + 各券K线(复用「量价验证」那份数据)
+   用 promise 记住"在途的那次加载": 榜单按钮与页签渲染可能同时要数据, 原来的
+   `if(SIM_LOADING)return false` 会让后到的那个静默失败(点「＋模拟仓」没反应), 现在都等同一个 promise。 */
 async function simEnsureData(){
   if(SIMCAL&&SIMK)return true;
-  if(SIM_LOADING)return false;
-  SIM_LOADING=true; simHint('正在读取交易日历/K线…');
-  try{
-    const days=await loadQijinHistory();
-    // 与「量价验证」共用同一套合并口径: 按"券+日期"拼成每只券的完整历史
-    const merged=mergeKlineDays(days), k={}, nm={};
-    merged.bonds.forEach(b=>{k[b.code]=b.k; nm[b.code]=b.name;});
-    SIMCAL=[...new Set(merged.bonds.flatMap(b=>b.k.map(r=>r[0])))].sort();
-    SIMK=k; SIMNAME=nm; simHint('');
-    return true;
-  }catch(e){simHint('读取K线失败：'+e);return false;}
-  finally{SIM_LOADING=false;}
+  if(!SIM_LOADING_P){
+    SIM_LOADING_P=(async()=>{
+      simHint('正在读取交易日历/K线…');
+      try{
+        const days=await loadQijinHistory();
+        // 与「量价验证」共用同一套合并口径: 按"券+日期"拼成每只券的完整历史
+        const merged=mergeKlineDays(days), k={}, nm={};
+        merged.bonds.forEach(b=>{k[b.code]=b.k; nm[b.code]=b.name;});
+        SIMCAL=[...new Set(merged.bonds.flatMap(b=>b.k.map(r=>r[0])))].sort();
+        SIMK=k; SIMNAME=nm; simHint('');
+        return true;
+      }catch(e){simHint('读取K线失败：'+e);return false;}
+    })().then(ok=>{SIM_LOADING_P=null;return ok;});
+  }
+  return SIM_LOADING_P;
 }
 function simMult(){const el=document.getElementById('simMult');
   const v=el?parseFloat(el.value):NaN; return (isFinite(v)&&v>0)?v:1.5;}
@@ -2080,22 +2476,136 @@ function simCloseOf(code,date){
   const r=k.find(x=>x[0]===date); return r?+r[2]:null;
 }
 /* ---- 交易 ---- */
+/* 榜单上的券可能从来没进过每日 Top30 快照(放量榜/蓄势榜是全市场扫描, 310 只),
+   而模拟仓的K线只来自快照 -> 这类持仓会估不出市值、也算不出应卖日收盘价。
+   这里按需从「扫描的日K缓存」(/api/volume/kline/<code>, 覆盖全市场)补一次; 失败的记下来不反复重试
+   (否则「无行情 -> 补抓失败 -> 重渲染 -> 再补抓」会转圈)。补到的K线一般只到扫描日, 比快照晚一天算正常。 */
+const SIMK_PENDING={}, SIMK_FAILED={};
+function simKlineFor(code){
+  if(!code||!SIMK)return Promise.resolve(false);
+  if(SIMK[code])return Promise.resolve(true);
+  if(SIMK_FAILED[code])return Promise.resolve(false);
+  if(!SIMK_PENDING[code]){
+    SIMK_PENDING[code]=fetch('/api/volume/kline/'+code)
+      .then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status)))
+      .then(d=>{
+        const k=d.kline||[];
+        if(!k.length)throw new Error('空K线');
+        SIMK[code]=k.map(row=>[row[0],+row[1],+row[2],+row[3],+row[4],+row[5],+row[6]]);
+        return true;
+      })
+      .catch(()=>{SIMK_FAILED[code]=1;return false;})
+      .then(ok=>{delete SIMK_PENDING[code];return ok;});
+  }
+  return SIMK_PENDING[code];
+}
+function simKlineLazy(code){          // 渲染时顺手补: 补到了就重渲染一次(市值/浮盈跟着更新)
+  if(SIMK&&code&&!SIMK[code])simKlineFor(code).then(ok=>{if(ok)renderSim();});
+}
+/* 买入: qty 传 0 = 按「每次加仓」张数(simLot, 默认 10 张), 不再按金额换算。
+   同一只券已有持仓 -> 在原仓位上加权摊薄成本(保留首次买入日与应卖日), 不再新增一行。
+   注意: 表单入口(手动买入)才走这里的"加仓"分支; 榜单/今日可买的按钮先在 simQuickBuy 拦掉已持仓的券。 */
 function simBuy(code,price,date,qty,name){
   const s=simState();
   price=+price;
-  if(!(price>0)){simHint('价格无效');return;}
-  if(!date||simCalIdx(date)<0){simHint(`买入日 ${date||''} 不是交易日（可用范围 ${SIMCAL[0]} ~ ${SIMCAL[SIMCAL.length-1]}）`);return;}
-  if(!qty)qty=Math.floor((s.per||0)/price/10)*10;      // 转债按 10 张一手
+  if(!(price>0)){simHint('价格无效');return false;}
+  date=date||((DAY&&DAY.date)||'');
+  if(!SIMCAL){simHint('交易日历还没加载完，稍后重试');return false;}
+  if(!date||simCalIdx(date)<0){
+    simHint(`买入日 ${date||'（空）'} 不在交易日历里（可用范围 ${SIMCAL[0]} ~ ${SIMCAL[SIMCAL.length-1]}）—— 等K线补到这天再试`);
+    return false;}
+  if(!qty)qty=simLot();                                 // 默认 = 每次加仓张数(1 手起)
   qty=Math.floor(+qty);
-  if(!(qty>0)){simHint('张数不足（单笔金额买不到 1 手）');return;}
+  if(!(qty>0)){simHint('张数要大于 0');return false;}
   const amount=price*qty, fee=amount*((s.feeBp||0)/1000);
-  if(amount+fee>s.cash+1e-6){simHint(`可用资金不足：需要 ${fmt(amount+fee)}，可用 ${fmt(s.cash)}`);return;}
-  const due=simAddDays(date,2);                        // 信号日T+3 = 买入日后第2个交易日收盘
+  if(amount+fee>s.cash+1e-6){simHint(`可用资金不足：需要 ${fmt(amount+fee)}，可用 ${fmt(s.cash)}`);return false;}
+  const held=s.positions.find(p=>p.code===code);
   s.cash-=amount+fee;
-  s.positions.push({id:s.seq++,code,name:name||code,buyDate:date,buyPrice:+price.toFixed(3),
-    qty,fee:+fee.toFixed(2),dueDate:due||''});
+  if(held){                                             // 加仓: 摊薄均价, 买入费累加(成本含费 = 均价×张数 + fee)
+    const nq=held.qty+qty;
+    held.buyPrice=+(((held.buyPrice*held.qty+amount)/nq).toFixed(3));
+    held.fee=+(held.fee+fee).toFixed(2);
+    held.qty=nq;
+    if(name&&(!held.name||held.name===held.code))held.name=name;
+    if(!held.dueDate)held.dueDate=simAddDays(held.buyDate,2)||'';
+  }else{
+    const due=simAddDays(date,2);                        // 信号日T+3 = 买入日后第2个交易日收盘
+    s.positions.push({id:s.seq++,code,name:name||code,buyDate:date,buyPrice:+price.toFixed(3),
+      qty,fee:+fee.toFixed(2),dueDate:due||''});
+  }
   simPersist(); renderSim();
-  simHint(`✔ 买入 ${name||code} ${qty}张 @${fmt(price)}，成本 ${fmt(amount+fee)}（含费 ${fmt(fee)}）`);
+  simHint(`✔ ${held?'加仓':'已加入模拟仓'}：${name||code} ${qty}张 @${fmt(price)}，成本 ${fmt(amount+fee)}（含费 ${fmt(fee)}）`
+    +(held?`，现持 ${held.qty}张 均价 ${fmt(held.buyPrice)}`:''));
+  return true;
+}
+/* 已在模拟仓的统一回执: 一只券只入仓一次, 再加只能走持仓表的 −/+(每次 1 手)。
+   榜单按钮、今日可买按钮、手动买入表单都走这里, 免得哪条路偷偷又买一笔。 */
+function simAlreadyHint(code){
+  const held=simHeld(code);
+  if(!held)return false;
+  simHint(`✔ 已加入模拟仓：${held.name||code}（现持 ${held.qty}张 · 均价 ${fmt(held.buyPrice)}）`
+    +`—— 已在仓就不会再买第二次，要加量用「持仓」表里的 −/+ 按 ${SIM_LOT} 张调整`);
+  return true;
+}
+function simHeld(code){
+  return simState().positions.find(x=>x.code===code)||null;
+}
+/* 榜单 /「今日可买」里的按钮: 先保证交易日历/K线已加载(算应卖日要用), 已持仓的直接拦掉。 */
+async function simQuickBuy(code,price,date,name){
+  if(simAlreadyHint(code))return false;
+  if(!(await simEnsureData()))return false;
+  return simBuy(code,price,date,0,name);
+}
+function simHeldQty(code){
+  const p=simHeld(code);
+  return p?p.qty:0;
+}
+/* 榜单行里的快捷建仓按钮: 未入仓「＋模拟仓」(点一下 = 每次加仓张数), 已入仓变「✓ 已加入」(再点只回执) */
+function simQuickBtn(code,price,name,date){
+  const held=simHeld(code);
+  const nm=String(name||'').replace(/'/g,'');
+  return `<button type="button" class="quickbuy${held?' held':''}"
+    title="${held?`已在模拟仓：现持 ${held.qty} 张 · 均价 ${fmt(held.buyPrice)} —— 点一下看持仓，加量请用持仓表的 −/+（每次 ${SIM_LOT} 张）`
+      :`点一下按现价 ${fmt(price)} 买 ${simLot()} 张进模拟仓（张数在模拟仓页签的设置里改）`}"
+    onclick="event.stopPropagation();simQuickBuy('${code}',${price},'${date||''}','${nm}')"
+    >${held?'✓ 已加入':'＋模拟仓'}</button>`;
+}
+/* 持仓张数 ±1 手(10 张): ＋ = 按现价买入摊薄成本; − = 按现价卖出(卖出的那部分计入成交记录) */
+async function simQtyStep(id,dir){
+  const s=simState();
+  const i=s.positions.findIndex(x=>x.id===id); if(i<0)return;
+  const p=s.positions[i];
+  let q=simQuote(p.code);
+  if(!q){await simKlineFor(p.code);q=simQuote(p.code);}   // 扫描榜加的券: 先补一次日K再成交
+  const px=q?+q.price:NaN;
+  if(!(px>0)){simHint('拿不到最新价，无法调整张数');return;}
+  if(dir>0){
+    const add=SIM_LOT, amount=px*add, fee=amount*((s.feeBp||0)/1000);
+    if(amount+fee>s.cash+1e-6){
+      simHint(`可用资金不足：加 ${add}张 需要 ${fmt(amount+fee)}，可用 ${fmt(s.cash)}`);return;}
+    const nq=p.qty+add;
+    p.buyPrice=+(((p.buyPrice*p.qty+amount)/nq).toFixed(3));
+    p.fee=+(p.fee+fee).toFixed(2);
+    p.qty=nq; s.cash-=amount+fee;
+    simPersist(); renderSim();
+    simHint(`✔ 加仓 ${p.name} ${add}张 @${fmt(px)}，现持 ${nq}张 均价 ${fmt(p.buyPrice)}`);
+    return;
+  }
+  // 减仓: 剩不到 1 手就一次清掉, 否则只减 1 手
+  const sellQty=p.qty<=SIM_LOT?p.qty:SIM_LOT;
+  const amount=px*sellQty, fee=amount*((s.feeBp||0)/1000);
+  const buyFee=+(p.fee*(sellQty/p.qty)).toFixed(2);     // 买入费按张数比例分摊到卖出的这部分
+  const cost=p.buyPrice*sellQty+buyFee;
+  const pnl=amount-fee-cost;
+  s.cash+=amount-fee;
+  s.closed.unshift(Object.assign({},p,{qty:sellQty,fee:buyFee,sellDate:q.date,
+    sellPrice:+px.toFixed(3),sellFee:+fee.toFixed(2),pnl:+pnl.toFixed(2),
+    pnlPct:cost?+(pnl/cost*100).toFixed(2):0,days:simDaysBetween(p.buyDate,q.date)}));
+  p.qty-=sellQty; p.fee=+(p.fee-buyFee).toFixed(2);
+  if(p.qty<=0)s.positions.splice(i,1);
+  simPersist(); renderSim();
+  simHint(`${pnl>=0?'✔':'✖'} 减仓 ${p.name} ${sellQty}张 @${fmt(px)}，${pnl>=0?'盈利':'亏损'} ${fmt(Math.abs(pnl))}`
+    +`（${pnl>=0?'+':''}${cost?(pnl/cost*100).toFixed(2):'0.00'}%）${p.qty>0?`，剩 ${p.qty}张`:'，已清仓'}`);
 }
 function simSell(id,sellDate,sellPrice){
   const s=simState();
@@ -2113,9 +2623,10 @@ function simSell(id,sellDate,sellPrice){
   simPersist(); renderSim();
   simHint(`${pnl>=0?'✔':'✖'} 平仓 ${p.name} ${p.qty}张 @${fmt(sellPrice)}，${pnl>=0?'盈利':'亏损'} ${fmt(Math.abs(pnl))}（${pnl>=0?'+':''}${(pnl/cost*100).toFixed(2)}%）`);
 }
-function simSellNow(id){
+async function simSellNow(id){
   const s=simState(); const p=s.positions.find(x=>x.id===id); if(!p)return;
-  const q=simQuote(p.code);
+  let q=simQuote(p.code);
+  if(!q){await simKlineFor(p.code);q=simQuote(p.code);}   // 扫描榜加的券: 先补一次日K再平
   if(!q){simHint('拿不到最新价');return;}
   simSell(id,q.date,q.price);
 }
@@ -2156,9 +2667,9 @@ function renderSim(){
     return;
   }
   // 设置回填(正在输入的框不要被覆盖)
-  if(!document.activeElement||['simInit','simPer','simFee'].indexOf(document.activeElement.id)<0){
+  if(!document.activeElement||['simInit','simLot','simFee'].indexOf(document.activeElement.id)<0){
     document.getElementById('simInit').value=s.init;
-    document.getElementById('simPer').value=s.per;
+    document.getElementById('simLot').value=s.lot;
     document.getElementById('simFee').value=s.feeBp;
   }
   // 账户估值
@@ -2170,7 +2681,7 @@ function renderSim(){
       if(d){p.dueDate=d;dueFixed++;}
     }
     if(SIMNAME&&SIMNAME[p.code]&&p.name===p.code){p.name=SIMNAME[p.code];dueFixed++;}  // 手填代码时补上名字
-    const q=simQuote(p.code);
+    const q=simQuote(p.code); if(!q)simKlineLazy(p.code);   // 扫描榜加的券: 按需补一次日K(见 simKlineLazy)
     const price=q?q.price:p.buyPrice, date=q?q.date:'-';
     const val=price*p.qty, c=p.buyPrice*p.qty+p.fee;
     mv+=val; cost+=c; floatPnl+=val-c;
@@ -2180,8 +2691,14 @@ function renderSim(){
     const pnl=val-c, pct=pnl/c*100;
     posRows.push(`<tr${isDue?' style="background:#fff8f2"':''} onclick="simOpen('${p.code}')" title="点击看该券详情">
       <td><span class="bname">${p.name}</span><span class="bcode">${p.code}</span>${isDue?'<span class="tag qijin">已到期</span>':''}</td>
-      <td>${p.buyDate}</td><td>${fmt(p.buyPrice)}</td><td>${p.qty}</td><td>${fmt(c)}</td>
-      <td>${fmt(price)}<span class="bcode">${date}</span></td>
+      <td>${p.buyDate}</td><td>${fmt(p.buyPrice)}</td>
+      <td class="qtybox"><button type="button" class="step" title="减 1 手（10 张）：按现价 ${fmt(price)} 卖出，卖出的部分计入成交记录"
+          onclick="event.stopPropagation();simQtyStep(${p.id},-1)">−</button><span class="q">${p.qty}</span><button
+          type="button" class="step" title="加 1 手（10 张）：按现价 ${fmt(price)} 买入，摊薄持仓成本"
+          onclick="event.stopPropagation();simQtyStep(${p.id},1)">＋</button></td>
+      <td>${fmt(c)}</td>
+      <td>${q?`${fmt(price)}<span class="bcode">${date}</span>`
+           :`${fmt(price)}<span class="hint" title="这只券既不在当日榜单也不在扫描日K缓存里，暂时只能按买入价估值">无行情</span>`}</td>
       <td>${fmt(val)}</td>
       <td class="${cls(pnl)}" style="font-weight:700">${pnl>=0?'+':''}${fmt(pnl)}<span class="bcode">${pnl>=0?'+':''}${pct.toFixed(2)}%</span></td>
       <td>${held==null?'-':held+'天'}</td>
@@ -2209,17 +2726,22 @@ function renderSim(){
     simKpi('持仓数',s.positions.length+' 笔');
   document.getElementById('simCash').innerHTML=
     `<span class="chip">初始资金 <b>${fmt(s.init)}</b></span>`
-    +`<span class="chip">单笔 <b>${fmt(s.per)}</b></span>`
+    +`<span class="chip">每次加仓 <b>${s.lot} 张</b></span>`
     +`<span class="chip">手续费 单边 <b>${s.feeBp}‰</b></span>`
     +`<span class="chip">交易日历 <b>${SIMCAL[0]} ~ ${SIMCAL[SIMCAL.length-1]}</b>（${SIMCAL.length} 天）</span>`
-    +`<span class="chip">数据 <b>本机浏览器 localStorage</b></span>`;
+    +`<span class="chip">数据 <b>本机浏览器 localStorage</b></span>`
+    +`<span class="chip" id="simSyncChip">推送镜像 <b>${simSyncText()}</b></span>`
+    +`<button type="button" class="qjbtn" style="padding:2px 10px;font-size:12px"
+        onclick="simServerSyncNow().then(ok=>simHint(ok?'✔ 已同步给服务端，定时推送读的是这份':'✗ 同步失败：'+(SIM_SYNC_LAST.msg||'看服务端是否在跑')))"
+        title="立刻把当前模拟仓同步给服务端（每半小时的推送读的是服务端那份 data/portfolio.json）">立即同步</button>`;
   // 今日可买
   const sigRows=[];
-  const mult=simMult();
+  const mult=simMult(), lot=simLot();
   (DAY&&DAY.bonds||[]).forEach(b=>{
     const q=qijinOf(b,mult); if(!q.ok)return;
-    const qty=Math.floor((s.per||0)/b.price/10)*10;      // 整手(10张)
-    const cost=qty*b.price, afford=qty>0&&cost<=s.cash;
+    const held=simHeld(b.code);
+    const qty=lot;                                       // 点一次 = 每次加仓张数(默认 10 张 = 1 手)
+    const cost=qty*b.price, afford=cost<=s.cash;
     sigRows.push(`<tr onclick="openBond('${b.code}')" title="点击看该券详情（分时/K线/归因/新闻）">
       <td><span class="bname">${b.name}</span><span class="bcode">${b.code}</span>${q.newHigh?'<span class="tag qijin nh">新高</span>':''}</td>
       <td>${q.sigDate||DAY.date}${q.streak>1
@@ -2228,21 +2750,27 @@ function renderSim(){
       <td class="up" style="font-weight:600">${pct(b.chg)}</td>
       <td style="font-weight:600;color:${q.ratio>=3?UP:(q.ratio>=2?ORG:ACC)}">${q.ratio.toFixed(2)}x</td>
       <td>${fmt(b.price)}</td><td>${fmt(q.base)}</td>
-      <td>${qty||'-'}</td><td>${qty?fmt(cost):'-'}</td>
-      <td>${afford
+      <td>${held?`<span class="bcode" title="已在模拟仓，不会再买第二次">已持 ${held.qty}张</span>`:qty}</td>
+      <td>${held?'<span class="bcode">—</span>':fmt(cost)}</td>
+      <td>${held
           ?`<button type="button" class="qjbtn" style="padding:2px 10px;font-size:12px"
-              onclick="event.stopPropagation();simBuy('${b.code}',${b.price},'${DAY.date}',0,'${String(b.name).replace(/'/g,'')}')">买入</button>`
-          :`<span class="hint">资金不足</span>`}</td>
+              onclick="event.stopPropagation();simQuickBuy('${b.code}',${b.price},'${DAY.date}','${String(b.name).replace(/'/g,'')}')"
+              title="已在模拟仓（现持 ${held.qty}张）—— 点一下看持仓，加量用持仓表的 −/+">✓ 已加入</button>`
+          :(afford
+            ?`<button type="button" class="qjbtn" style="padding:2px 10px;font-size:12px"
+                onclick="event.stopPropagation();simQuickBuy('${b.code}',${b.price},'${DAY.date}','${String(b.name).replace(/'/g,'')}')"
+                >买入 ${lot}张</button>`
+            :`<span class="hint">资金不足</span>`)}</td>
     </tr>`);
   });
   simTable('#simSignal',
-    ['转债','信号出现日','当日涨幅','量比(额)','现价','20日均额(亿)','可买张数','预计成本','操作'],
+    ['转债','信号出现日','当日涨幅','量比(额)','现价','20日均额(亿)','本次张数','本次成本','操作'],
     sigRows,`今日没有量价齐升信号（倍数 ≥ ${mult}）—— 可把倍数调低，或直接用下面的手动买入`);
   const dueN=s.positions.filter(p=>p.dueDate&&simCloseOf(p.code,p.dueDate)).length;
   document.getElementById('simDue').textContent=dueN?`有 ${dueN} 笔已到应卖日`:'当前没有到期的仓位';
   simTable('#simPos',
-    ['转债','买入日','买入价','张数','成本(含费)','最新价','市值','浮动盈亏','已持有','应卖日','操作'],
-    posRows,'空仓 —— 可以在上面点「买入」建一笔，或手动记录');
+    ['转债','买入日','买入价','张数(±10)','成本(含费)','最新价','市值','浮动盈亏','已持有','应卖日','操作'],
+    posRows,'空仓 —— 可以点榜单行尾的「＋模拟仓」建一笔，或手动记录');
   simTable('#simClosed',
     ['转债','买入日','买入价','卖出日','卖出价','张数','盈亏(元)','盈亏%','持有'],
     s.closed.slice(0,100).map(c=>`<tr onclick="simOpen('${c.code}')" title="点击看该券详情">
@@ -2257,12 +2785,12 @@ function renderSim(){
 function simSaveCfg(){
   const s=simState();
   const init=parseFloat(document.getElementById('simInit').value);
-  const per=parseFloat(document.getElementById('simPer').value);
+  const lot=parseFloat(document.getElementById('simLot').value);
   const fee=parseFloat(document.getElementById('simFee').value);
   if(isFinite(init)&&init>=0){s.cash+=(init-s.init); s.init=init;}
-  if(isFinite(per)&&per>=0)s.per=per;
+  if(isFinite(lot)&&lot>=SIM_LOT)s.lot=Math.floor(lot/SIM_LOT)*SIM_LOT;   // 每次加仓张数: 只能整手
   if(isFinite(fee)&&fee>=0)s.feeBp=fee;
-  simPersist(); renderSim(); simHint('✔ 设置已保存');
+  simPersist(); renderSim(); simHint(`✔ 设置已保存（每次加仓 ${s.lot} 张）`);
 }
 function simBuyManual(){
   const code=(document.getElementById('simCode').value||'').trim();
@@ -2270,6 +2798,7 @@ function simBuyManual(){
   const qty=parseFloat(document.getElementById('simQty').value)||0;
   const date=(document.getElementById('simDate').value||'').trim()||(DAY&&DAY.date)||'';
   if(!/^\d{6}$/.test(code)){simHint('代码要 6 位数字，如 111024');return;}
+  if(simAlreadyHint(code))return;          // 已在仓: 和榜单按钮一个规矩, 不重复买
   const b=DAY&&DAY.bonds?DAY.bonds.find(x=>x.code===code):null;
   const k=SIMK&&SIMK[code];
   if(!b&&!k){simHint('这只券没有K线数据，无法模拟');return;}
@@ -2290,18 +2819,18 @@ function simImport(){
   try{
     const o=JSON.parse(txt);
     if(!o||!Array.isArray(o.positions))throw new Error('格式不对');
-    SIM=o; SIM.positions=SIM.positions||[]; SIM.closed=SIM.closed||[];
+    SIM=simNormalize(o);      // 老导出没有 lot/seq 这类字段, 统一在这里补齐
     simPersist(); renderSim(); simHint('✔ 导入成功');
   }catch(e){simHint('导入失败：'+e.message);}
 }
 function simReset(){
   if(!confirm('清空模拟仓（持仓 + 成交记录 + 资金回到初始）？此操作不可撤销。'))return;
   const s=simState();
-  SIM={init:s.init,cash:s.init,per:s.per,feeBp:s.feeBp,seq:1,positions:[],closed:[]};
+  SIM={init:s.init,cash:s.init,lot:s.lot,feeBp:s.feeBp,seq:1,positions:[],closed:[]};
   simPersist(); renderSim(); simHint('已清空，资金回到初始');
 }
 
-loadDates(); renderBondList();
+loadDates(); renderBondList(); simBootSync();
 </script>
 </body>
 </html>

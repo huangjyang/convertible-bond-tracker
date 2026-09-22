@@ -152,7 +152,7 @@
  "118051": {
   "name": "皓元转债",
   "stock_code": "688131",
-  "stock_name": "皓元医药"
+  "stock_name": "XD皓元医"
  },
  "113691": {
   "name": "和邦转债",
@@ -333,5 +333,35 @@
   "name": "赛特转债",
   "stock_code": "688398",
   "stock_name": "赛特新材"
+ },
+ "113701": {
+  "name": "祥和转债",
+  "stock_code": "603500",
+  "stock_name": "祥和实业"
+ },
+ "113686": {
+  "name": "泰瑞转债",
+  "stock_code": "603289",
+  "stock_name": "泰瑞机器"
+ },
+ "123274": {
+  "name": "维科转债",
+  "stock_code": "301499",
+  "stock_name": "维科精密"
+ },
+ "118069": {
+  "name": "爱科转债",
+  "stock_code": "688092",
+  "stock_name": "爱科科技"
+ },
+ "118012": {
+  "name": "微芯转债",
+  "stock_code": "688321",
+  "stock_name": "微芯生物"
+ },
+ "111004": {
+  "name": "明新转债",
+  "stock_code": "605068",
+  "stock_name": "明新旭腾"
  }
 }

@@ -115,9 +115,13 @@ check('蓄势TOP 表行数 = 40', topRows === Math.min(40, coil.bonds.length), `
 check('追高区表行数 = counts.risk', riskRows === coil.counts.risk || (coil.counts.risk === 0 && el('sel#coilRisk')._tbody.innerHTML.includes('没有')),
   `${riskRows} 行 / counts ${coil.counts.risk}`);
 const head = el('sel#coilTop')._thead.innerHTML;
-check('表头 11 列(含蓄势分/连续缩量)', (head.match(/<th[ >]/g) || []).length === 11,
+check('表头 12 列(含蓄势分/连续缩量/模拟仓)', (head.match(/<th[ >]/g) || []).length === 12,
   `${(head.match(/<th[ >]/g) || []).length} 列`);
 check('行内 onclick 指向 openCoilBond', el('sel#coilTop')._tbody.innerHTML.includes("openCoilBond('"));
+check('每行都有「＋模拟仓」按钮(走 simQuickBuy)',
+  el('sel#coilTop')._tbody.innerHTML.includes("simQuickBuy('") &&
+  (el('sel#coilTop')._tbody.innerHTML.match(/class="quickbuy/g) || []).length === topRows,
+  `${(el('sel#coilTop')._tbody.innerHTML.match(/class="quickbuy/g) || []).length} 个 / ${topRows} 行`);
 const validBody = el('sel#coilValid')._tbody.innerHTML;
 check('分层回测表渲染出点火行', validBody.includes('点火'), '');
 check('回测表列出最大浮亏列', el('sel#coilValid')._thead.innerHTML.includes('最大浮亏'));

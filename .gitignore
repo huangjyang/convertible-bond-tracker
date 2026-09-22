@@ -3,3 +3,17 @@ __pycache__/
 .DS_Store
 .venv/
 venv/
+
+# ---- 推送相关: 含个人持仓与推送凭据, 一律不进版本库 ----
+# ntfy 的 topic 名字本身就是"密码"(谁订阅到谁就能收到, 也能往里发), 所以不提交。
+push_config.json
+# 模拟仓的服务端镜像(你的真实持仓/成本/张数)
+data/portfolio.json
+# 推送去重状态与行情缓存
+data/push_state.json
+data/push_quotes_cache.json
+# launchd 的运行日志
+data/push.log
+data/push.err
+# install_push.sh 生成的本机 plist(含本机绝对路径, 换机要重新生成)
+launchd/

@@ -94,7 +94,7 @@ check('统计条渲染出扫描日', el('volChips').innerHTML.includes(volJSON.d
 check('统计条渲染出候选数', el('volChips').innerHTML.includes(`>${volJSON.counts.candidate}<`));
 check('首选分组行数 = ' + first.length,
   (el('sel#volTable1')._tbody.innerHTML.match(/<tr/g) || []).length === first.length,
-  `表头列数=${(el('sel#volTable1')._thead.innerHTML.match(/<th>/g) || []).length}`);
+  `表头列数=${(el('sel#volTable1')._thead.innerHTML.match(/<th[ >]/g) || []).length}`);
 check('次选分组行数 = ' + second.length,
   (el('sel#volTable2')._tbody.innerHTML.match(/<tr/g) || []).length === second.length);
 check('回避分组行数 = ' + drop.length,
@@ -103,7 +103,14 @@ check('首选表渲染出具体券名', first.length === 0 ||
   el('sel#volTable1')._tbody.innerHTML.includes(first[0].name), first[0]?.name);
 check('行内 onclick 指向 openVolBond',
   el('sel#volTable1')._tbody.innerHTML.includes("openVolBond('"));
-check('表头 12 列', (el('sel#volTable1')._thead.innerHTML.match(/<th>/g) || []).length === 12);
+check('表头 13 列(末列是「模拟仓」快捷建仓)',
+  (el('sel#volTable1')._thead.innerHTML.match(/<th[ >]/g) || []).length === 13);
+check('「模拟仓」列表头/单元格都带 pinr(钉在右边缘, 横滑也在视野里)',
+  el('sel#volTable1')._thead.innerHTML.includes('<th class="pinr">模拟仓</th>') &&
+  el('sel#volTable1')._tbody.innerHTML.includes('<td class="pinr">'));
+check('每行都有「＋模拟仓」按钮(走 simQuickBuy)',
+  (el('sel#volTable1')._tbody.innerHTML.match(/class="quickbuy/g) || []).length === first.length &&
+  el('sel#volTable1')._tbody.innerHTML.includes("simQuickBuy('"));
 // 「历史验证」卡片的数据来自 volume_scan_*.json 里的 validation 字段, 而它只在
 // `scan_volume.py --report` 时才写入; 看板自动扫描(app.py maybe_scan)不带 --report,
 // 所以最新一天通常没有 —— 这种情况必须优雅降级, 不能报错或留半张表。

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1200px; height:1800px; overflow:hidden; }
+  .card {
+    position:relative; width:1200px; height:1800px; padding:56px 64px 52px;
+    background:
+      radial-gradient(900px 520px at 88% -6%, rgba(0,229,168,.16), transparent 62%),
+      radial-gradient(820px 560px at -6% 106%, rgba(56,132,255,.18), transparent 60%),
+      linear-gradient(160deg,#0A101E 0%,#0C1526 52%,#0A1220 100%);
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    color:#EAF0FA; display:flex; flex-direction:column;
+  }
+  .grid { position:absolute; inset:0;
+    background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+    background-size:60px 60px; }
+  .sec { position:relative; }
+  header { display:flex; align-items:center; justify-content:space-between; }
+  .brand { display:flex; align-items:center; gap:12px; font-size:22px; color:#9FB3D1; }
+  .brand .dot { width:10px; height:10px; border-radius:50%; background:#00E5A8; box-shadow:0 0 14px #00E5A8; }
+  .status { font-size:21px; color:#00E5A8; border:1px solid rgba(0,229,168,.42);
+    background:rgba(0,229,168,.10); padding:9px 20px; border-radius:999px; }
+
+  .h1 { margin-top:26px; font-size:56px; font-weight:700; letter-spacing:1.5px; }
+  .h1 em { font-style:normal; background:linear-gradient(96deg,#00E5A8,#4FD1FF 70%,#8FB4FF);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .h1s { margin-top:14px; font-size:26px; color:#94AAC8; letter-spacing:.5px; }
+
+  h2 { display:flex; align-items:center; gap:14px; font-size:32px; font-weight:600; letter-spacing:1px; }
+  h2::before { content:""; width:6px; height:30px; border-radius:3px;
+    background:linear-gradient(#00E5A8,#4FD1FF); box-shadow:0 0 16px rgba(0,229,168,.6); }
+  h2 small { font-size:22px; font-weight:400; color:#7E93B3; letter-spacing:.5px; }
+
+  /* 常见需求 */
+  .needs { margin-top:34px; }
+  .n-grid { margin-top:18px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  .n { padding:17px 20px; border-radius:16px; background:linear-gradient(150deg,rgba(255,255,255,.075),rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.10); }
+  .n .t { font-size:25px; font-weight:600; }
+  .n .d { margin-top:8px; font-size:20px; color:#8FA5C2; line-height:1.5; }
+
+  /* 流程 */
+  .flowsec { margin-top:34px; }
+  .steps { margin-top:18px; display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .step { position:relative; padding:19px 20px 21px; border-radius:16px;
+    background:linear-gradient(150deg,rgba(0,229,168,.10),rgba(56,132,255,.06));
+    border:1px solid rgba(0,229,168,.22); }
+  .step .num { font-size:20px; font-weight:700; color:#00E5A8; letter-spacing:1px; }
+  .step .t { margin-top:12px; font-size:26px; font-weight:600; }
+  .step .d { margin-top:9px; font-size:20px; color:#9BB0CC; line-height:1.55; }
+  .step .arw { position:absolute; right:-13px; top:50%; transform:translateY(-50%);
+    color:#3E5C86; font-size:22px; }
+
+  /* 交付物 */
+  .delse { margin-top:34px; }
+  .d-grid { margin-top:18px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .d { display:flex; align-items:center; gap:16px; padding:18px 22px; border-radius:16px;
+    background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.10); }
+  .d .ck { flex:0 0 34px; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:rgba(0,229,168,.16); border:1px solid rgba(0,229,168,.45); color:#00E5A8; font-size:19px; font-weight:700; }
+  .d .t { font-size:25px; font-weight:600; }
+  .d .s { margin-top:5px; font-size:19px; color:#8FA5C2; }
+
+  /* 价格 */
+  .price { margin-top:auto; padding:26px 32px; border-radius:22px;
+    background:linear-gradient(100deg,rgba(0,229,168,.13),rgba(56,132,255,.10));
+    border:1px solid rgba(0,229,168,.30); display:flex; align-items:center; gap:38px; }
+  .price .big { flex:0 0 auto; }
+  .price .big .lb { font-size:21px; color:#00E5A8; letter-spacing:1px; }
+  .price .big .num { margin-top:6px; font-size:60px; font-weight:700; letter-spacing:1px; }
+  .price .big .num b { font-size:32px; }
+  .price .big .num i { font-style:normal; font-size:24px; color:#9BB0CC; font-weight:400; margin-left:6px; }
+  .price .tiers { flex:1; display:flex; flex-direction:column; gap:11px; font-size:22px; color:#C6D7EC; }
+  .price .tiers div { display:flex; gap:12px; align-items:baseline; }
+  .price .tiers s { text-decoration:none; flex:0 0 auto; color:#00E5A8; font-weight:600; }
+  .price .tiers span { color:#93A9C6; }
+
+  footer { margin-top:22px; padding-top:20px; border-top:1px solid rgba(255,255,255,.10);
+    display:flex; align-items:center; justify-content:space-between; }
+  .note { font-size:21px; color:#7E93B3; line-height:1.5; }
+  .note b { color:#B7C9E2; font-weight:600; }
+  .cta { font-size:25px; font-weight:600; color:#08131F; background:linear-gradient(96deg,#00E5A8,#5FD0FF);
+    padding:15px 30px; border-radius:14px; box-shadow:0 10px 30px rgba(0,229,168,.26); white-space:nowrap; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="grid"></div>
+
+  <header class="sec">
+    <div class="brand"><span class="dot"></span>财经数据 · 系统定制</div>
+    <div class="status">● 接单中</div>
+  </header>
+
+  <div class="sec">
+    <div class="h1">财经数据采集系统 · <em>定制开发</em></div>
+    <div class="h1s">你把想要的数据和格式告诉我，我把整套系统做出来、跑起来、推到手机上。</div>
+  </div>
+
+  <div class="sec needs">
+    <h2>常见需求 <small>说说你属于哪种，直接照着聊</small></h2>
+    <div class="n-grid">
+      <div class="n"><div class="t">选股条件扫描</div><div class="d">放量、突破、蓄势、均线多头，每天收盘自动扫一遍出名单</div></div>
+      <div class="n"><div class="t">持仓监控提醒</div><div class="d">自选/持仓异动、涨跌幅、可转债强赎与转股，触发就推</div></div>
+      <div class="n"><div class="t">研报 / 公告汇总</div><div class="d">按标的或板块归档公告、研报标题，沉淀成可搜索的库</div></div>
+      <div class="n"><div class="t">可转债 / ETF 专项</div><div class="d">双低、溢价率、剩余规模、成交额排行，每日更新</div></div>
+      <div class="n"><div class="t">财务数据批量成表</div><div class="d">多标的多年份指标一次拉齐，导出 Excel 直接分析</div></div>
+      <div class="n"><div class="t">板块资金流榜单</div><div class="d">主力净流入排行、板块轮动跟踪，每天推一张榜单</div></div>
+    </div>
+  </div>
+
+  <div class="sec flowsec">
+    <h2>服务流程 <small>四步走完，全程不用你懂代码</small></h2>
+    <div class="steps">
+      <div class="step"><div class="num">STEP 1</div><div class="t">私信聊需求</div><div class="d">告诉我要哪些数据、多久跑一次、想怎么看到结果</div><div class="arw">→</div></div>
+      <div class="step"><div class="num">STEP 2</div><div class="t">评估报价</div><div class="d">明确价格和工期，能做才接，做不了直接说</div><div class="arw">→</div></div>
+      <div class="step"><div class="num">STEP 3</div><div class="t">开发 + 试跑</div><div class="d">先跑通一版给你验收，数据不对就调，随时看进度</div><div class="arw">→</div></div>
+      <div class="step"><div class="num">STEP 4</div><div class="t">交付上线</div><div class="d">部署到你的电脑或服务器，跑到你满意为止</div></div>
+    </div>
+  </div>
+
+  <div class="sec delse">
+    <h2>交付内容 <small>一次买断，不是租给你</small></h2>
+    <div class="d-grid">
+      <div class="d"><div class="ck">✓</div><div><div class="t">完整源码</div><div class="s">代码归你，以后想加功能随便找人改</div></div></div>
+      <div class="d"><div class="ck">✓</div><div><div class="t">部署到能跑</div><div class="s">远程协助或图文指导，装好为止</div></div></div>
+      <div class="d"><div class="ck">✓</div><div><div class="t">使用文档</div><div class="s">怎么启动、怎么改配置，写成说明书</div></div></div>
+      <div class="d"><div class="ck">✓</div><div><div class="t">7 天答疑</div><div class="s">交付后 7 天内有问题继续帮你修</div></div></div>
+    </div>
+  </div>
+
+  <div class="sec price">
+    <div class="big">
+      <div class="lb">参考价格</div>
+      <div class="num">300 <b>元</b><i>起</i></div>
+    </div>
+    <div class="tiers">
+      <div><s>300 - 800</s><span>单个数据采集脚本，定时跑、存文件、简单输出</span></div>
+      <div><s>800 - 2000</s><span>采集 + 数据库 + 每日推送 / Excel 自动导出</span></div>
+      <div><s>2000 +</s><span>多数据源整合 + 网页看板 + 部署上线，长期维护另议</span></div>
+      <div><s>只做合规</s><span>仅采集公开数据，破解付费/隐私数据的活不接</span></div>
+    </div>
+  </div>
+
+  <footer class="sec">
+    <div class="note"><b>不确定能不能做？</b>直接把需求私信发我，<br>能做我给你报价，不能做我也直说，不浪费你时间。</div>
+    <div class="cta">闲鱼私信 · 聊需求</div>
+  </footer>
+</div>
+</body>
+</html>
